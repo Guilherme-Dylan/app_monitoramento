@@ -15,6 +15,7 @@ import {
 } from "./db";
 import { generateReportHTML } from "./reports";
 import { validateCredentials, createUserWithPassword } from "./auth-local";
+import { sdk } from "./_core/sdk";
 
 export const appRouter = router({
   system: systemRouter,
@@ -34,7 +35,7 @@ export const appRouter = router({
           password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
         })
       )
-      .mutation(async ({ input }) => {
+      .mutation(async ({ input, ctx }) => {
         const user = await validateCredentials(input.email, input.password);
         if (!user) {
           throw new TRPCError({
@@ -42,6 +43,16 @@ export const appRouter = router({
             message: "Email ou senha incorretos",
           });
         }
+        
+        // Criar token de sessão
+        const sessionToken = await sdk.createSessionToken(user.openId || "", {
+          name: user.name || "",
+        });
+        
+        // Definir cookie de sessão
+        const cookieOptions = getSessionCookieOptions(ctx.req);
+        ctx.res.cookie(COOKIE_NAME, sessionToken, cookieOptions);
+        
         return {
           success: true,
           user: { id: user.id, email: user.email, name: user.name, role: user.role },
@@ -55,9 +66,20 @@ export const appRouter = router({
           name: z.string().min(1, "Nome é obrigatório"),
         })
       )
-      .mutation(async ({ input }) => {
+      .mutation(async ({ input, ctx }) => {
         try {
           await createUserWithPassword(input.email, input.password, input.name, "user");
+          
+          // Fazer login automaticamente após registro
+          const user = await validateCredentials(input.email, input.password);
+          if (user) {
+            const sessionToken = await sdk.createSessionToken(user.openId || "", {
+              name: user.name || "",
+            });
+            const cookieOptions = getSessionCookieOptions(ctx.req);
+            ctx.res.cookie(COOKIE_NAME, sessionToken, cookieOptions);
+          }
+          
           return { success: true };
         } catch (error) {
           throw new TRPCError({

@@ -65,3 +65,7 @@
 ## Novas Funcionalidades Solicitadas
 - [ ] Implementar login com email e senha (sem OAuth)
 - [ ] Criar usuários administradores com credenciais de email/senha
+
+
+## Bugs Reportados - Sessão Atual
+- [x] Login com email/senha não está funcionando (CORRIGIDO - Implementada criação de sessão JWT)
