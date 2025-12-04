@@ -55,3 +55,6 @@
 
 ## Bugs Reportados
 - [x] Endpoint /api/generate-pdf não implementado - PDF não abre (CORRIGIDO)
+
+## Novas Solicitações
+- [x] Gerar dois usuários administradores no banco de dados (CONCLUÍDO)
