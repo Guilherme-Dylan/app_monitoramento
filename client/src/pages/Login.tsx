@@ -162,22 +162,6 @@ export default function Login() {
           </CardContent>
         </Card>
 
-        {/* Demo Credentials */}
-        {!isRegister && (
-          <Card className="mt-6 border-amber-200 bg-amber-50">
-            <CardContent className="pt-6">
-              <p className="text-sm font-semibold text-amber-900 mb-3">📌 Credenciais de Teste:</p>
-              <div className="space-y-2 text-sm text-amber-800">
-                <p>
-                  <strong>Admin 1:</strong> admin1@monitoramento.com / Admin@123456
-                </p>
-                <p>
-                  <strong>Admin 2:</strong> admin2@monitoramento.com / Admin@654321
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        )}
       </div>
     </div>
   );
