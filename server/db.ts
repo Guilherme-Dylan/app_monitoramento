@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { InsertUser, users, InsertSearchRequest, searchRequests, InsertAnonymousReport, anonymousReports } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -89,4 +89,97 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+/**
+ * Criar uma nova solicitação de busca
+ */
+export async function createSearchRequest(data: InsertSearchRequest) {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+  const result = await db.insert(searchRequests).values(data);
+  return result;
+}
+
+/**
+ * Obter todas as solicitações de busca (admin)
+ */
+export async function getAllSearchRequests() {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+  return db.select().from(searchRequests).orderBy((t) => t.createdAt);
+}
+
+/**
+ * Obter solicitações de busca de um usuário específico
+ */
+export async function getUserSearchRequests(userId: number) {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+  return db
+    .select()
+    .from(searchRequests)
+    .where(eq(searchRequests.userId, userId))
+    .orderBy((t) => t.createdAt);
+}
+
+/**
+ * Atualizar status de uma solicitação de busca
+ */
+export async function updateSearchRequestStatus(
+  id: number,
+  status: "pending" | "approved" | "rejected"
+) {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+  return db
+    .update(searchRequests)
+    .set({ status, updatedAt: new Date() })
+    .where(eq(searchRequests.id, id));
+}
+
+/**
+ * Criar uma nova denúncia anônima
+ */
+export async function createAnonymousReport(data: InsertAnonymousReport) {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+  const result = await db.insert(anonymousReports).values(data);
+  return result;
+}
+
+/**
+ * Obter todas as denúncias anônimas (admin)
+ */
+export async function getAllAnonymousReports() {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+  return db.select().from(anonymousReports).orderBy((t) => t.createdAt);
+}
+
+/**
+ * Atualizar status de uma denúncia anônima
+ */
+export async function updateAnonymousReportStatus(
+  id: number,
+  status: "pending" | "under_review" | "resolved" | "closed"
+) {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+  return db
+    .update(anonymousReports)
+    .set({ status, updatedAt: new Date() })
+    .where(eq(anonymousReports.id, id));
+}

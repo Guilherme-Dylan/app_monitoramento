@@ -25,4 +25,38 @@ export const users = mysqlTable("users", {
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
-// TODO: Add your tables here
+/**
+ * Solicitações de busca feitas por usuários autenticados
+ */
+export const searchRequests = mysqlTable("search_requests", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  email: varchar("email", { length: 320 }).notNull(),
+  phone: varchar("phone", { length: 20 }),
+  department: varchar("department", { length: 255 }).notNull(),
+  position: varchar("position", { length: 255 }),
+  description: text("description").notNull(),
+  status: mysqlEnum("status", ["pending", "approved", "rejected"]).default("pending").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type SearchRequest = typeof searchRequests.$inferSelect;
+export type InsertSearchRequest = typeof searchRequests.$inferInsert;
+
+/**
+ * Denúncias anônimas - não requer autenticação
+ */
+export const anonymousReports = mysqlTable("anonymous_reports", {
+  id: int("id").autoincrement().primaryKey(),
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description").notNull(),
+  category: varchar("category", { length: 100 }),
+  status: mysqlEnum("status", ["pending", "under_review", "resolved", "closed"]).default("pending").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type AnonymousReport = typeof anonymousReports.$inferSelect;
+export type InsertAnonymousReport = typeof anonymousReports.$inferInsert;
