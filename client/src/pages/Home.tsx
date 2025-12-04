@@ -46,9 +46,14 @@ export default function Home() {
                 </Button>
               </>
             ) : (
-              <Button asChild className="bg-blue-600 hover:bg-blue-700 text-white">
-                <a href={getLoginUrl()}>Entrar</a>
-              </Button>
+              <div className="flex gap-2">
+                <Button asChild variant="outline">
+                  <Link href="/login">Email/Senha</Link>
+                </Button>
+                <Button asChild className="bg-blue-600 hover:bg-blue-700 text-white">
+                  <a href={getLoginUrl()}>OAuth</a>
+                </Button>
+              </div>
             )}
           </div>
         </div>
@@ -190,9 +195,14 @@ export default function Home() {
               <p className="text-blue-800 mb-4">
                 Ao fazer login, você terá acesso a solicitações de busca e poderá acompanhar o status de suas solicitações em tempo real.
               </p>
-              <Button asChild className="bg-blue-600 hover:bg-blue-700 text-white">
-                <a href={getLoginUrl()}>Fazer Login</a>
-              </Button>
+              <div className="flex gap-2">
+                <Button asChild className="bg-blue-600 hover:bg-blue-700 text-white">
+                  <Link href="/login">Login com Email/Senha</Link>
+                </Button>
+                <Button asChild variant="outline">
+                  <a href={getLoginUrl()}>Login com OAuth</a>
+                </Button>
+              </div>
             </CardContent>
           </Card>
         )}

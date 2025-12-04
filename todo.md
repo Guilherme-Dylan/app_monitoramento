@@ -58,3 +58,10 @@
 
 ## Novas Solicitações
 - [x] Gerar dois usuários administradores no banco de dados (CONCLUÍDO)
+- [x] Implementar login com email e senha (CONCLUÍDO)
+- [x] Criar página de login com formulário (CONCLUÍDO)
+- [x] Criar página de registro (CONCLUÍDO)
+
+## Novas Funcionalidades Solicitadas
+- [ ] Implementar login com email e senha (sem OAuth)
+- [ ] Criar usuários administradores com credenciais de email/senha

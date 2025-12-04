@@ -14,6 +14,7 @@ import {
   updateAnonymousReportStatus,
 } from "./db";
 import { generateReportHTML } from "./reports";
+import { validateCredentials, createUserWithPassword } from "./auth-local";
 
 export const appRouter = router({
   system: systemRouter,
@@ -26,6 +27,45 @@ export const appRouter = router({
         success: true,
       } as const;
     }),
+    loginLocal: publicProcedure
+      .input(
+        z.object({
+          email: z.string().email("Email inválido"),
+          password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const user = await validateCredentials(input.email, input.password);
+        if (!user) {
+          throw new TRPCError({
+            code: "UNAUTHORIZED",
+            message: "Email ou senha incorretos",
+          });
+        }
+        return {
+          success: true,
+          user: { id: user.id, email: user.email, name: user.name, role: user.role },
+        };
+      }),
+    registerLocal: publicProcedure
+      .input(
+        z.object({
+          email: z.string().email("Email inválido"),
+          password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
+          name: z.string().min(1, "Nome é obrigatório"),
+        })
+      )
+      .mutation(async ({ input }) => {
+        try {
+          await createUserWithPassword(input.email, input.password, input.name, "user");
+          return { success: true };
+        } catch (error) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: error instanceof Error ? error.message : "Erro ao criar usuário",
+          });
+        }
+      }),
   }),
 
   // Procedimentos para solicitações de busca

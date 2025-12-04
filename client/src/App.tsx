@@ -2,6 +2,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
 import Home from "@/pages/Home";
+import Login from "@/pages/Login";
 import SearchRequest from "@/pages/SearchRequest";
 import AnonymousReport from "@/pages/AnonymousReport";
 import UserDashboard from "@/pages/UserDashboard";
@@ -15,6 +16,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
+      <Route path="/login" component={Login} />
       <Route path="/search-request" component={SearchRequest} />
       <Route path="/anonymous-report" component={AnonymousReport} />
       <Route path="/user-dashboard" component={UserDashboard} />
