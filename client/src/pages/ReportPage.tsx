@@ -12,24 +12,19 @@ export default function ReportPage() {
   const { data, isLoading } = trpc.reports.generateHTML.useQuery();
 
   const handleDownloadPDF = async () => {
-    if (!data?.html) {
-      toast.error("Relatório não disponível");
-      return;
-    }
-
     setIsDownloading(true);
     try {
-      // Usar a API do servidor para converter HTML para PDF
+      // Chamar o endpoint do servidor para gerar PDF
       const response = await fetch("/api/generate-pdf", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ html: data.html }),
+        body: JSON.stringify({}),
       });
 
       if (!response.ok) {
-        throw new Error("Erro ao gerar PDF");
+        throw new Error(`Erro ao gerar PDF: ${response.statusText}`);
       }
 
       const blob = await response.blob();
@@ -45,7 +40,7 @@ export default function ReportPage() {
       toast.success("Relatório baixado com sucesso!");
     } catch (error) {
       console.error("Erro ao baixar PDF:", error);
-      toast.error("Erro ao baixar relatório");
+      toast.error(error instanceof Error ? error.message : "Erro ao baixar relatório");
     } finally {
       setIsDownloading(false);
     }
@@ -95,11 +90,11 @@ export default function ReportPage() {
 
               <Button
                 onClick={handleDownloadPDF}
-                disabled={isLoading || isDownloading}
+                disabled={isDownloading}
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 flex items-center justify-center gap-2"
               >
                 <Download className="w-4 h-4" />
-                {isDownloading ? "Gerando PDF..." : isLoading ? "Carregando..." : "Baixar Relatório em PDF"}
+                {isDownloading ? "Gerando PDF..." : "Baixar Relatório em PDF"}
               </Button>
             </div>
           </CardContent>

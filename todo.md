@@ -51,3 +51,7 @@
 - Projeto inicializado com stack: React 19, TailwindCSS 4, Express 4, tRPC 11, Drizzle ORM
 - Banco de dados: MySQL
 - Autenticação: Manus OAuth
+
+
+## Bugs Reportados
+- [x] Endpoint /api/generate-pdf não implementado - PDF não abre (CORRIGIDO)
