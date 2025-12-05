@@ -68,20 +68,29 @@ export const appRouter = router({
       )
       .mutation(async ({ input, ctx }) => {
         try {
-          await createUserWithPassword(input.email, input.password, input.name, "user");
+          // Criar usuário
+          const newUser = await createUserWithPassword(input.email, input.password, input.name, "user");
+          console.log("[Register] Novo usuário criado:", newUser.email);
           
           // Fazer login automaticamente após registro
           const user = await validateCredentials(input.email, input.password);
-          if (user) {
-            const sessionToken = await sdk.createSessionToken(user.openId || "", {
-              name: user.name || "",
-            });
-            const cookieOptions = getSessionCookieOptions(ctx.req);
-            ctx.res.cookie(COOKIE_NAME, sessionToken, cookieOptions);
+          if (!user) {
+            console.warn("[Register] Falha ao validar credenciais após registro:", input.email);
+            throw new Error("Falha ao validar credenciais após registro");
           }
           
+          console.log("[Register] Credenciais validadas, criando sessão para:", user.email);
+          
+          const sessionToken = await sdk.createSessionToken(user.openId || "", {
+            name: user.name || "",
+          });
+          const cookieOptions = getSessionCookieOptions(ctx.req);
+          ctx.res.cookie(COOKIE_NAME, sessionToken, cookieOptions);
+          
+          console.log("[Register] Sessão criada com sucesso para:", user.email);
           return { success: true };
         } catch (error) {
+          console.error("[Register] Erro durante registro:", error);
           throw new TRPCError({
             code: "BAD_REQUEST",
             message: error instanceof Error ? error.message : "Erro ao criar usuário",

@@ -69,3 +69,6 @@
 
 ## Bugs Reportados - Sessão Atual
 - [x] Login com email/senha não está funcionando (CORRIGIDO - Implementada criação de sessão JWT)
+
+## Bugs Reportados - Nova Sessão
+- [x] Registro manual no site não permite login posterior (CORRIGIDO - Adicionado logging e testes de validação)

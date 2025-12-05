@@ -1,0 +1,58 @@
+{
+  "query": "SELECT id, email, name, password, role, loginMethod FROM users;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 7rsxSUw4G4kDLqB.root --database KZsZuqK2nGJGrzZmb7qczS --execute SELECT id, email, name, password, role, loginMethod FROM users;",
+  "rows": [
+    {
+      "id": "1",
+      "email": "glhrmdylan@gmail.com",
+      "name": "Guilherme Dylan",
+      "password": "NULL",
+      "role": "admin",
+      "loginMethod": "google"
+    },
+    {
+      "id": "8",
+      "email": "equipemonitoramento2023@gmail.com",
+      "name": "EquipeMonitoramento",
+      "password": "NULL",
+      "role": "user",
+      "loginMethod": "google"
+    },
+    {
+      "id": "30001",
+      "email": "admin1@monitoramento.com",
+      "name": "Administrador Principal",
+      "password": "$2b$10$EIY9aW7btL/3q6HDMuWA0uS.DtgWlgK1bb74Tff34A1k7TDFqAFpK",
+      "role": "admin",
+      "loginMethod": "email"
+    },
+    {
+      "id": "30002",
+      "email": "admin2@monitoramento.com",
+      "name": "Administrador Secundário",
+      "password": "$2b$10$xqN.L/bJWdpBkw1MhEE8ROuSM0bWtawi.A5sgGL9anxNVsCB/2X8m",
+      "role": "admin",
+      "loginMethod": "email"
+    },
+    {
+      "id": "30026",
+      "email": "monitoramentoanimalia@gmail.com",
+      "name": "Monitoramento Animalia",
+      "password": "NULL",
+      "role": "user",
+      "loginMethod": "google"
+    },
+    {
+      "id": "90001",
+      "email": "fofislive@gmail.com",
+      "name": "Guilherme Dylan",
+      "password": "$2b$10$WZARYavZuUiFw4Zx.7CvnekPRTaipxoOHIlTdlFcMjViHjJIFw9xC",
+      "role": "user",
+      "loginMethod": "email"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\temail\tname\tpassword\trole\tloginMethod\n1\tglhrmdylan@gmail.com\tGuilherme Dylan\tNULL\tadmin\tgoogle\n8\tequipemonitoramento2023@gmail.com\tEquipeMonitoramento\tNULL\tuser\tgoogle\n30001\tadmin1@monitoramento.com\tAdministrador Principal\t$2b$10$EIY9aW7btL/3q6HDMuWA0uS.DtgWlgK1bb74Tff34A1k7TDFqAFpK\tadmin\temail\n30002\tadmin2@monitoramento.com\tAdministrador Secundário\t$2b$10$xqN.L/bJWdpBkw1MhEE8ROuSM0bWtawi.A5sgGL9anxNVsCB/2X8m\tadmin\temail\n30026\tmonitoramentoanimalia@gmail.com\tMonitoramento Animalia\tNULL\tuser\tgoogle\n90001\tfofislive@gmail.com\tGuilherme Dylan\t$2b$10$WZARYavZuUiFw4Zx.7CvnekPRTaipxoOHIlTdlFcMjViHjJIFw9xC\tuser\temail\n",
+  "stderr": "",
+  "execution_time_ms": 51
+}
