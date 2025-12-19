@@ -72,3 +72,6 @@
 
 ## Bugs Reportados - Nova Sessão
 - [x] Registro manual no site não permite login posterior (CORRIGIDO - Adicionado logging e testes de validação)
+
+## Bugs Corrigidos - Última Sessão
+- [x] Login mostra mensagem de sucesso mas não autentica o usuário (CORRIGIDO - Invalidado cache de auth.me após login/registro)

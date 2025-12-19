@@ -16,6 +16,7 @@ export default function Login() {
   const [isRegister, setIsRegister] = useState(false);
   const [name, setName] = useState("");
 
+  const utils = trpc.useUtils();
   const loginMutation = trpc.auth.loginLocal.useMutation();
   const registerMutation = trpc.auth.registerLocal.useMutation();
 
@@ -27,6 +28,10 @@ export default function Login() {
       const result = await loginMutation.mutateAsync({ email, password });
       if (result.success) {
         toast.success("Login realizado com sucesso!");
+        
+        // Invalidar cache de autenticação para forçar refetch
+        await utils.auth.me.invalidate();
+        
         // Redirecionar para home após login
         setTimeout(() => setLocation("/"), 500);
       }
@@ -44,11 +49,19 @@ export default function Login() {
     try {
       const result = await registerMutation.mutateAsync({ email, password, name });
       if (result.success) {
-        toast.success("Cadastro realizado com sucesso! Faça login agora.");
-        setIsRegister(false);
+        toast.success("Cadastro realizado com sucesso! Você já está logado.");
+        
+        // Invalidar cache de autenticação para forçar refetch
+        await utils.auth.me.invalidate();
+        
+        // Redirecionar para home após registro
+        setTimeout(() => setLocation("/"), 500);
+        
+        // Limpar formulário
         setEmail("");
         setPassword("");
         setName("");
+        setIsRegister(false);
       }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Erro ao criar conta");
