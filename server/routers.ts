@@ -163,14 +163,19 @@ export const appRouter = router({
   // Procedimentos para relatórios
   reports: router({
     generateHTML: protectedProcedure
+      .input(
+        z.object({
+          selectedDate: z.date().optional(),
+        })
+      )
       .use(async ({ ctx, next }) => {
         if (ctx.user.role !== "admin") {
           throw new TRPCError({ code: "FORBIDDEN" });
         }
         return next({ ctx });
       })
-      .query(async () => {
-        const html = await generateReportHTML();
+      .query(async ({ input }) => {
+        const html = await generateReportHTML(input.selectedDate);
         return { html };
       }),
   }),

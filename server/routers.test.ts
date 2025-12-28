@@ -210,11 +210,26 @@ describe("anonymousReports router", () => {
 });
 
 describe("reports router", () => {
-  it("should allow admin to generate HTML report", async () => {
+  it("should allow admin to generate HTML report without date filter", async () => {
     const ctx = createMockContext("admin");
     const caller = appRouter.createCaller(ctx);
 
-    const result = await caller.reports.generateHTML();
+    const result = await caller.reports.generateHTML({
+      selectedDate: undefined,
+    });
+    expect(result).toHaveProperty("html");
+    expect(typeof result.html).toBe("string");
+    expect(result.html).toContain("Relatório de Monitoramento");
+  });
+
+  it("should allow admin to generate HTML report with date filter", async () => {
+    const ctx = createMockContext("admin");
+    const caller = appRouter.createCaller(ctx);
+
+    const testDate = new Date();
+    const result = await caller.reports.generateHTML({
+      selectedDate: testDate,
+    });
     expect(result).toHaveProperty("html");
     expect(typeof result.html).toBe("string");
     expect(result.html).toContain("Relatório de Monitoramento");
@@ -225,7 +240,9 @@ describe("reports router", () => {
     const caller = appRouter.createCaller(ctx);
 
     try {
-      await caller.reports.generateHTML();
+      await caller.reports.generateHTML({
+        selectedDate: undefined,
+      });
       expect.fail("Should have thrown FORBIDDEN error");
     } catch (error) {
       expect(error).toBeDefined();

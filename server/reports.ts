@@ -1,18 +1,41 @@
 import { getAllSearchRequests, getAllAnonymousReports } from "./db";
-import { format } from "date-fns";
+import { format, startOfDay, endOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 /**
  * Gerar relatório em HTML para conversão em PDF
+ * @param selectedDate - Data selecionada para filtro (opcional)
  */
-export async function generateReportHTML() {
+export async function generateReportHTML(selectedDate?: Date) {
   const requests = await getAllSearchRequests();
   const reports = await getAllAnonymousReports();
+
+  // Filtrar por data se fornecida
+  let filteredRequests = requests;
+  let filteredReports = reports;
+  let dateRangeText = "Todas as datas";
+
+  if (selectedDate) {
+    const dayStart = startOfDay(selectedDate);
+    const dayEnd = endOfDay(selectedDate);
+
+    filteredRequests = requests.filter((req) => {
+      const createdDate = new Date(req.createdAt);
+      return createdDate >= dayStart && createdDate <= dayEnd;
+    });
+
+    filteredReports = reports.filter((rep) => {
+      const createdDate = new Date(rep.createdAt);
+      return createdDate >= dayStart && createdDate <= dayEnd;
+    });
+
+    dateRangeText = format(selectedDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR });
+  }
 
   const formattedDate = format(new Date(), "dd 'de' MMMM 'de' yyyy", { locale: ptBR });
   const formattedTime = format(new Date(), "HH:mm:ss", { locale: ptBR });
 
-  const requestsHTML = requests
+  const requestsHTML = filteredRequests
     .map(
       (req) => `
     <tr>
@@ -45,7 +68,7 @@ export async function generateReportHTML() {
     )
     .join("");
 
-  const reportsHTML = reports
+  const reportsHTML = filteredReports
     .map(
       (rep) => `
     <tr>
@@ -184,6 +207,7 @@ export async function generateReportHTML() {
       <div class="container">
         <div class="header">
           <h1>Relatório de Monitoramento</h1>
+          <p>Período: ${dateRangeText}</p>
           <p>Gerado em ${formattedDate} às ${formattedTime}</p>
         </div>
 
@@ -192,19 +216,19 @@ export async function generateReportHTML() {
           <div class="summary">
             <div class="summary-card">
               <h3>Total de Solicitações</h3>
-              <p>${requests.length}</p>
+              <p>${filteredRequests.length}</p>
             </div>
             <div class="summary-card">
               <h3>Solicitações Aprovadas</h3>
-              <p>${requests.filter((r) => r.status === "approved").length}</p>
+              <p>${filteredRequests.filter((r) => r.status === "approved").length}</p>
             </div>
             <div class="summary-card">
               <h3>Solicitações Pendentes</h3>
-              <p>${requests.filter((r) => r.status === "pending").length}</p>
+              <p>${filteredRequests.filter((r) => r.status === "pending").length}</p>
             </div>
             <div class="summary-card">
               <h3>Total de Denúncias</h3>
-              <p>${reports.length}</p>
+              <p>${filteredReports.length}</p>
             </div>
           </div>
         </div>
@@ -212,7 +236,7 @@ export async function generateReportHTML() {
         <div class="section">
           <h2>Solicitações de Busca</h2>
           ${
-            requests.length > 0
+            filteredRequests.length > 0
               ? `
             <table>
               <thead>
@@ -230,14 +254,14 @@ export async function generateReportHTML() {
               </tbody>
             </table>
           `
-              : "<p>Nenhuma solicitação registrada.</p>"
+              : "<p>Nenhuma solicitação registrada para o período selecionado.</p>"
           }
         </div>
 
         <div class="section">
           <h2>Denúncias Anônimas</h2>
           ${
-            reports.length > 0
+            filteredReports.length > 0
               ? `
             <table>
               <thead>
@@ -254,7 +278,7 @@ export async function generateReportHTML() {
               </tbody>
             </table>
           `
-              : "<p>Nenhuma denúncia registrada.</p>"
+              : "<p>Nenhuma denúncia registrada para o período selecionado.</p>"
           }
         </div>
 

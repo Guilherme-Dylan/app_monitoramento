@@ -75,3 +75,16 @@
 
 ## Bugs Corrigidos - Última Sessão
 - [x] Login mostra mensagem de sucesso mas não autentica o usuário (CORRIGIDO - Invalidado cache de auth.me após login/registro)
+
+
+## Novas Funcionalidades - Sessão Atual
+- [ ] Filtro por data no relatório PDF
+- [ ] Seletor de data na página de relatórios
+- [ ] Gerar PDF apenas com dados da data selecionada
+
+
+## Novas Funcionalidades Implementadas
+- [x] Filtro por data no relatório PDF
+- [x] Seletor de data na página de relatórios
+- [x] Gerar PDF apenas com dados da data selecionada
+- [x] Testes para filtro de data

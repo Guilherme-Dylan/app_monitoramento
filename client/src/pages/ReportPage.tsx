@@ -1,15 +1,21 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { trpc } from "@/lib/trpc";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Download, FileText } from "lucide-react";
+import { Download, FileText, Calendar } from "lucide-react";
 
 export default function ReportPage() {
   const { user } = useAuth();
   const [isDownloading, setIsDownloading] = useState(false);
-  const { data, isLoading } = trpc.reports.generateHTML.useQuery();
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  
+  const { data, isLoading, refetch } = trpc.reports.generateHTML.useQuery({
+    selectedDate: selectedDate,
+  });
 
   const handleDownloadPDF = async () => {
     setIsDownloading(true);
@@ -20,7 +26,9 @@ export default function ReportPage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({}),
+        body: JSON.stringify({
+          selectedDate: selectedDate ? selectedDate.toISOString() : null,
+        }),
       });
 
       if (!response.ok) {
@@ -31,7 +39,13 @@ export default function ReportPage() {
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `relatorio-monitoramento-${new Date().toISOString().split("T")[0]}.pdf`;
+      
+      // Incluir data no nome do arquivo
+      const dateStr = selectedDate 
+        ? selectedDate.toISOString().split("T")[0]
+        : new Date().toISOString().split("T")[0];
+      link.download = `relatorio-monitoramento-${dateStr}.pdf`;
+      
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -43,6 +57,16 @@ export default function ReportPage() {
       toast.error(error instanceof Error ? error.message : "Erro ao baixar relatório");
     } finally {
       setIsDownloading(false);
+    }
+  };
+
+  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const dateString = e.target.value;
+    if (dateString) {
+      const date = new Date(dateString + "T00:00:00");
+      setSelectedDate(date);
+    } else {
+      setSelectedDate(undefined);
     }
   };
 
@@ -88,9 +112,29 @@ export default function ReportPage() {
                 </p>
               </div>
 
+              {/* Seletor de Data */}
+              <div className="space-y-2">
+                <Label htmlFor="report-date" className="flex items-center gap-2">
+                  <Calendar className="w-4 h-4" />
+                  Selecionar Data (Opcional)
+                </Label>
+                <Input
+                  id="report-date"
+                  type="date"
+                  value={selectedDate ? selectedDate.toISOString().split("T")[0] : ""}
+                  onChange={handleDateChange}
+                  className="border-slate-300"
+                />
+                <p className="text-xs text-slate-500">
+                  {selectedDate 
+                    ? `Relatório será gerado apenas com dados de ${selectedDate.toLocaleDateString("pt-BR")}`
+                    : "Deixe em branco para gerar relatório com todos os dados"}
+                </p>
+              </div>
+
               <Button
                 onClick={handleDownloadPDF}
-                disabled={isDownloading}
+                disabled={isDownloading || isLoading}
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 flex items-center justify-center gap-2"
               >
                 <Download className="w-4 h-4" />
