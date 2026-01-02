@@ -1,6 +1,7 @@
 import { getAllSearchRequests, getAllAnonymousReports } from "./db";
 import { format, startOfDay, endOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { toZonedTime } from "date-fns-tz";
 
 /**
  * Gerar relatório em HTML para conversão em PDF
@@ -16,24 +17,45 @@ export async function generateReportHTML(selectedDate?: Date) {
   let dateRangeText = "Todas as datas";
 
   if (selectedDate) {
+    console.log("[Report] Data selecionada:", selectedDate);
+    console.log("[Report] Data selecionada ISO:", selectedDate.toISOString());
+    
+    // Usar a data selecionada como início e fim do dia
     const dayStart = startOfDay(selectedDate);
     const dayEnd = endOfDay(selectedDate);
 
+    console.log("[Report] Intervalo de filtro:", dayStart, "até", dayEnd);
+
     filteredRequests = requests.filter((req) => {
       const createdDate = new Date(req.createdAt);
-      return createdDate >= dayStart && createdDate <= dayEnd;
+      const isInRange = createdDate >= dayStart && createdDate <= dayEnd;
+      if (!isInRange) {
+        console.log("[Report] Solicitação fora do intervalo:", createdDate, "não está entre", dayStart, "e", dayEnd);
+      }
+      return isInRange;
     });
 
     filteredReports = reports.filter((rep) => {
       const createdDate = new Date(rep.createdAt);
-      return createdDate >= dayStart && createdDate <= dayEnd;
+      const isInRange = createdDate >= dayStart && createdDate <= dayEnd;
+      if (!isInRange) {
+        console.log("[Report] Denúncia fora do intervalo:", createdDate, "não está entre", dayStart, "e", dayEnd);
+      }
+      return isInRange;
     });
+
+    console.log("[Report] Solicitações filtradas:", filteredRequests.length, "de", requests.length);
+    console.log("[Report] Denúncias filtradas:", filteredReports.length, "de", reports.length);
 
     dateRangeText = format(selectedDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR });
   }
 
-  const formattedDate = format(new Date(), "dd 'de' MMMM 'de' yyyy", { locale: ptBR });
-  const formattedTime = format(new Date(), "HH:mm:ss", { locale: ptBR });
+  // Usar horário em GMT-3 (Brasília)
+  const timeZone = "America/Sao_Paulo";
+  const now = new Date();
+  const zonedDate = toZonedTime(now, timeZone);
+  const formattedDate = format(zonedDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR });
+  const formattedTime = format(zonedDate, "HH:mm:ss", { locale: ptBR });
 
   const requestsHTML = filteredRequests
     .map(
@@ -59,7 +81,7 @@ export async function generateReportHTML(selectedDate?: Date) {
         }</span>
       </td>
       <td style="border: 1px solid #ddd; padding: 8px;">${format(
-        new Date(req.createdAt),
+        toZonedTime(new Date(req.createdAt), timeZone),
         "dd/MM/yyyy HH:mm",
         { locale: ptBR }
       )}</td>
@@ -95,7 +117,7 @@ export async function generateReportHTML(selectedDate?: Date) {
         }</span>
       </td>
       <td style="border: 1px solid #ddd; padding: 8px;">${format(
-        new Date(rep.createdAt),
+        toZonedTime(new Date(rep.createdAt), timeZone),
         "dd/MM/yyyy HH:mm",
         { locale: ptBR }
       )}</td>

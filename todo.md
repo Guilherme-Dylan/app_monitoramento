@@ -88,3 +88,8 @@
 - [x] Seletor de data na página de relatórios
 - [x] Gerar PDF apenas com dados da data selecionada
 - [x] Testes para filtro de data
+
+
+## Bugs Reportados - Filtro de Data
+- [x] Filtro de data não está funcionando - PDF gerado com todos os dados (CORRIGIDO)
+- [x] Horário do relatório está em GMT-3 em vez de UTC (CORRIGIDO - Implementado date-fns-tz)
