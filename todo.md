@@ -93,3 +93,7 @@
 ## Bugs Reportados - Filtro de Data
 - [x] Filtro de data não está funcionando - PDF gerado com todos os dados (CORRIGIDO)
 - [x] Horário do relatório está em GMT-3 em vez de UTC (CORRIGIDO - Implementado date-fns-tz)
+
+
+## Bugs Críticos - Sessão Atual
+- [x] Filtragem de data no relatório não está funcionando - PDF vem com todos os dados (CORRIGIDO)

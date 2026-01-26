@@ -1,17 +1,50 @@
 import { Request, Response } from "express";
 import PDFDocument from "pdfkit";
 import { getAllSearchRequests, getAllAnonymousReports } from "./db";
-import { format } from "date-fns";
+import { format, startOfDay, endOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { toZonedTime } from "date-fns-tz";
 
 /**
  * Handler para gerar PDF com as solicitações e denúncias
  */
 export async function generatePdfReport(req: Request, res: Response) {
   try {
+    // Obter data selecionada do corpo da requisição
+    const { selectedDate } = req.body;
+    let filterDate: Date | undefined;
+    
+    if (selectedDate) {
+      filterDate = new Date(selectedDate);
+      console.log("[PDF] Data de filtro recebida:", filterDate);
+    }
+
     // Buscar dados do banco
-    const requests = await getAllSearchRequests();
-    const reports = await getAllAnonymousReports();
+    let requests = await getAllSearchRequests();
+    let reports = await getAllAnonymousReports();
+
+    // Aplicar filtro de data se fornecida
+    let dateRangeText = "Todas as datas";
+    if (filterDate) {
+      const dayStart = startOfDay(filterDate);
+      const dayEnd = endOfDay(filterDate);
+
+      console.log("[PDF] Filtrando por intervalo:", dayStart, "até", dayEnd);
+
+      requests = requests.filter((req) => {
+        const createdDate = new Date(req.createdAt);
+        return createdDate >= dayStart && createdDate <= dayEnd;
+      });
+
+      reports = reports.filter((rep) => {
+        const createdDate = new Date(rep.createdAt);
+        return createdDate >= dayStart && createdDate <= dayEnd;
+      });
+
+      dateRangeText = format(filterDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR });
+      console.log("[PDF] Solicitações filtradas:", requests.length);
+      console.log("[PDF] Denúncias filtradas:", reports.length);
+    }
 
     // Criar documento PDF
     const doc = new PDFDocument({
@@ -20,10 +53,14 @@ export async function generatePdfReport(req: Request, res: Response) {
     });
 
     // Configurar headers da resposta
+    const dateStr = filterDate 
+      ? filterDate.toISOString().split("T")[0]
+      : new Date().toISOString().split("T")[0];
+    
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename="relatorio-monitoramento-${new Date().toISOString().split("T")[0]}.pdf"`
+      `attachment; filename="relatorio-monitoramento-${dateStr}.pdf"`
     );
 
     // Pipe do PDF para a resposta
@@ -34,10 +71,21 @@ export async function generatePdfReport(req: Request, res: Response) {
       align: "center",
     });
 
-    const formattedDate = format(new Date(), "dd 'de' MMMM 'de' yyyy", {
+    // Usar timezone de Brasília
+    const timeZone = "America/Sao_Paulo";
+    const now = new Date();
+    const zonedDate = toZonedTime(now, timeZone);
+    const formattedDate = format(zonedDate, "dd 'de' MMMM 'de' yyyy", {
       locale: ptBR,
     });
-    const formattedTime = format(new Date(), "HH:mm:ss", { locale: ptBR });
+    const formattedTime = format(zonedDate, "HH:mm:ss", { locale: ptBR });
+
+    doc
+      .fontSize(12)
+      .font("Helvetica-Bold")
+      .text(`Período: ${dateRangeText}`, {
+        align: "center",
+      });
 
     doc
       .fontSize(10)
@@ -81,7 +129,8 @@ export async function generatePdfReport(req: Request, res: Response) {
             : req.status === "rejected"
               ? "Rejeitado"
               : "Pendente";
-        const date = format(new Date(req.createdAt), "dd/MM/yyyy HH:mm", {
+        const zonedReqDate = toZonedTime(new Date(req.createdAt), timeZone);
+        const date = format(zonedReqDate, "dd/MM/yyyy HH:mm", {
           locale: ptBR,
         });
         doc.fontSize(8).text(
@@ -89,7 +138,7 @@ export async function generatePdfReport(req: Request, res: Response) {
         );
       });
     } else {
-      doc.text("Nenhuma solicitação registrada.");
+      doc.text("Nenhuma solicitação registrada para o período selecionado.");
     }
 
     doc.moveDown();
@@ -112,7 +161,8 @@ export async function generatePdfReport(req: Request, res: Response) {
               : rep.status === "under_review"
                 ? "Em Análise"
                 : "Pendente";
-        const date = format(new Date(rep.createdAt), "dd/MM/yyyy HH:mm", {
+        const zonedRepDate = toZonedTime(new Date(rep.createdAt), timeZone);
+        const date = format(zonedRepDate, "dd/MM/yyyy HH:mm", {
           locale: ptBR,
         });
         doc.fontSize(8).text(
@@ -120,7 +170,7 @@ export async function generatePdfReport(req: Request, res: Response) {
         );
       });
     } else {
-      doc.text("Nenhuma denúncia registrada.");
+      doc.text("Nenhuma denúncia registrada para o período selecionado.");
     }
 
     doc.moveDown(2);
