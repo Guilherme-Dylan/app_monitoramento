@@ -70,7 +70,7 @@ export default function ReportPage() {
     }
   };
 
-  if (user?.role !== "admin") {
+  if (user?.tipo_de_user !== "admin") {
     return (
       <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">

@@ -42,7 +42,7 @@ export default function UserDashboard() {
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-slate-900 mb-2">Meu Dashboard</h1>
-          <p className="text-slate-600">Bem-vindo, {user?.name}! Veja o histórico de suas solicitações.</p>
+          <p className="text-slate-600">Bem-vindo, {user?.nome}! Veja o histórico de suas solicitações.</p>
         </div>
 
         {isLoading ? (

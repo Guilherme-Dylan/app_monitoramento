@@ -35,7 +35,7 @@ export async function upsertUser(user: InsertUser): Promise<void> {
     };
     const updateSet: Record<string, unknown> = {};
 
-    const textFields = ["name", "email", "loginMethod"] as const;
+    const textFields = ["nome", "email", "loginMethod"] as const;
     type TextField = (typeof textFields)[number];
 
     const assignNullable = (field: TextField) => {
@@ -52,12 +52,12 @@ export async function upsertUser(user: InsertUser): Promise<void> {
       values.lastSignedIn = user.lastSignedIn;
       updateSet.lastSignedIn = user.lastSignedIn;
     }
-    if (user.role !== undefined) {
-      values.role = user.role;
-      updateSet.role = user.role;
+    if (user.tipo_de_user !== undefined) {
+      values.tipo_de_user = user.tipo_de_user;
+      updateSet.tipo_de_user = user.tipo_de_user;
     } else if (user.openId === ENV.ownerOpenId) {
-      values.role = 'admin';
-      updateSet.role = 'admin';
+      values.tipo_de_user = 'admin';
+      updateSet.tipo_de_user = 'admin';
     }
 
     if (!values.lastSignedIn) {
@@ -89,97 +89,65 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-/**
- * Criar uma nova solicitação de busca
- */
-export async function createSearchRequest(data: InsertSearchRequest) {
+export async function getUserByEmail(email: string) {
   const db = await getDb();
   if (!db) {
-    throw new Error("Database not available");
+    console.warn("[Database] Cannot get user: database not available");
+    return undefined;
   }
-  const result = await db.insert(searchRequests).values(data);
+
+  const result = await db.select().from(users).where(eq(users.email, email)).limit(1);
+
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function createSearchRequest(request: InsertSearchRequest) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db.insert(searchRequests).values(request);
   return result;
 }
 
-/**
- * Obter todas as solicitações de busca (admin)
- */
 export async function getAllSearchRequests() {
   const db = await getDb();
-  if (!db) {
-    throw new Error("Database not available");
-  }
-  return db.select().from(searchRequests).orderBy((t) => t.createdAt);
+  if (!db) return [];
+
+  return await db.select().from(searchRequests);
 }
 
-/**
- * Obter solicitações de busca de um usuário específico
- */
 export async function getUserSearchRequests(userId: number) {
   const db = await getDb();
-  if (!db) {
-    throw new Error("Database not available");
-  }
-  return db
-    .select()
-    .from(searchRequests)
-    .where(eq(searchRequests.userId, userId))
-    .orderBy((t) => t.createdAt);
+  if (!db) return [];
+
+  return await db.select().from(searchRequests).where(eq(searchRequests.userId, userId));
 }
 
-/**
- * Atualizar status de uma solicitação de busca
- */
-export async function updateSearchRequestStatus(
-  id: number,
-  status: "pending" | "approved" | "rejected"
-) {
+export async function updateSearchRequestStatus(id: number, status: "pending" | "approved" | "rejected") {
   const db = await getDb();
-  if (!db) {
-    throw new Error("Database not available");
-  }
-  return db
-    .update(searchRequests)
-    .set({ status, updatedAt: new Date() })
-    .where(eq(searchRequests.id, id));
+  if (!db) throw new Error("Database not available");
+
+  await db.update(searchRequests).set({ status }).where(eq(searchRequests.id, id));
 }
 
-/**
- * Criar uma nova denúncia anônima
- */
-export async function createAnonymousReport(data: InsertAnonymousReport) {
+export async function createAnonymousReport(report: InsertAnonymousReport) {
   const db = await getDb();
-  if (!db) {
-    throw new Error("Database not available");
-  }
-  const result = await db.insert(anonymousReports).values(data);
+  if (!db) throw new Error("Database not available");
+
+  const result = await db.insert(anonymousReports).values(report);
   return result;
 }
 
-/**
- * Obter todas as denúncias anônimas (admin)
- */
 export async function getAllAnonymousReports() {
   const db = await getDb();
-  if (!db) {
-    throw new Error("Database not available");
-  }
-  return db.select().from(anonymousReports).orderBy((t) => t.createdAt);
+  if (!db) return [];
+
+  return await db.select().from(anonymousReports);
 }
 
-/**
- * Atualizar status de uma denúncia anônima
- */
-export async function updateAnonymousReportStatus(
-  id: number,
-  status: "pending" | "under_review" | "resolved" | "closed"
-) {
+export async function updateAnonymousReportStatus(id: number, status: "pending" | "under_review" | "resolved" | "closed") {
   const db = await getDb();
-  if (!db) {
-    throw new Error("Database not available");
-  }
-  return db
-    .update(anonymousReports)
-    .set({ status, updatedAt: new Date() })
-    .where(eq(anonymousReports.id, id));
+  if (!db) throw new Error("Database not available");
+
+  await db.update(anonymousReports).set({ status }).where(eq(anonymousReports.id, id));
 }

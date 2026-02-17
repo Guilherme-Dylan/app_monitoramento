@@ -34,7 +34,7 @@ export default function Home() {
               <>
                 <div className="text-sm">
                   <p className="text-slate-600">Bem-vindo,</p>
-                  <p className="font-semibold text-slate-900">{user?.name}</p>
+                  <p className="font-semibold text-slate-900">{user?.nome}</p>
                 </div>
                 <Button
                   onClick={handleLogout}
@@ -141,7 +141,7 @@ export default function Home() {
           )}
 
           {/* Feature 4: Painel Admin */}
-          {isAuthenticated && user?.role === "admin" && (
+          {isAuthenticated && user?.tipo_de_user === "admin" && (
             <Card className="border-slate-200 hover:shadow-lg transition-shadow bg-purple-50 border-purple-200">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -164,7 +164,7 @@ export default function Home() {
           )}
 
           {/* Feature 5: Relatórios */}
-          {isAuthenticated && user?.role === "admin" && (
+          {isAuthenticated && user?.tipo_de_user === "admin" && (
             <Card className="border-slate-200 hover:shadow-lg transition-shadow bg-amber-50 border-amber-200">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">

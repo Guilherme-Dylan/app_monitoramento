@@ -13,12 +13,9 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [isRegister, setIsRegister] = useState(false);
-  const [name, setName] = useState("");
 
   const utils = trpc.useUtils();
   const loginMutation = trpc.auth.loginLocal.useMutation();
-  const registerMutation = trpc.auth.registerLocal.useMutation();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,34 +39,6 @@ export default function Login() {
     }
   };
 
-  const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-
-    try {
-      const result = await registerMutation.mutateAsync({ email, password, name });
-      if (result.success) {
-        toast.success("Cadastro realizado com sucesso! Você já está logado.");
-        
-        // Invalidar cache de autenticação para forçar refetch
-        await utils.auth.me.invalidate();
-        
-        // Redirecionar para home após registro
-        setTimeout(() => setLocation("/"), 500);
-        
-        // Limpar formulário
-        setEmail("");
-        setPassword("");
-        setName("");
-        setIsRegister(false);
-      }
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Erro ao criar conta");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white flex items-center justify-center px-4">
       <div className="w-full max-w-md">
@@ -85,29 +54,13 @@ export default function Login() {
         {/* Login Card */}
         <Card className="border-slate-200 shadow-lg">
           <CardHeader>
-            <CardTitle>{isRegister ? "Criar Conta" : "Fazer Login"}</CardTitle>
+            <CardTitle>Fazer Login</CardTitle>
             <CardDescription>
-              {isRegister
-                ? "Crie uma nova conta para acessar o sistema"
-                : "Acesse com seu email e senha"}
+              Acesse com seu email e senha fornecidos pelo administrador
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={isRegister ? handleRegister : handleLogin} className="space-y-4">
-              {isRegister && (
-                <div className="space-y-2">
-                  <Label htmlFor="name">Nome Completo</Label>
-                  <Input
-                    id="name"
-                    type="text"
-                    placeholder="Seu nome"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    required
-                  />
-                </div>
-              )}
-
+            <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <div className="relative">
@@ -145,31 +98,15 @@ export default function Login() {
                 disabled={isLoading}
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium"
               >
-                {isLoading
-                  ? isRegister
-                    ? "Criando conta..."
-                    : "Fazendo login..."
-                  : isRegister
-                    ? "Criar Conta"
-                    : "Entrar"}
+                {isLoading ? "Fazendo login..." : "Entrar"}
               </Button>
             </form>
 
-            {/* Toggle Register/Login */}
-            <div className="mt-6 text-center">
-              <p className="text-sm text-slate-600">
-                {isRegister ? "Já tem uma conta? " : "Não tem uma conta? "}
-                <button
-                  onClick={() => {
-                    setIsRegister(!isRegister);
-                    setEmail("");
-                    setPassword("");
-                    setName("");
-                  }}
-                  className="text-blue-600 hover:text-blue-700 font-semibold"
-                >
-                  {isRegister ? "Fazer login" : "Criar conta"}
-                </button>
+            {/* Info Message */}
+            <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-sm text-blue-800">
+                <strong>Nota:</strong> Apenas administradores podem criar novas contas. 
+                Solicite ao administrador do sistema para criar sua conta.
               </p>
             </div>
           </CardContent>

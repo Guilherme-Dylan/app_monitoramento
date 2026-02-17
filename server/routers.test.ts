@@ -4,14 +4,14 @@ import type { TrpcContext } from "./_core/context";
 
 type AuthenticatedUser = NonNullable<TrpcContext["user"]>;
 
-function createMockContext(role: "user" | "admin" = "user"): TrpcContext {
+function createMockContext(tipo_de_user: "user" | "admin" = "user"): TrpcContext {
   const user: AuthenticatedUser = {
     id: 1,
     openId: "test-user",
     email: "test@example.com",
-    name: "Test User",
+    nome: "Test User",
     loginMethod: "manus",
-    role,
+    tipo_de_user,
     createdAt: new Date(),
     updatedAt: new Date(),
     lastSignedIn: new Date(),

@@ -13,7 +13,7 @@ export default function SearchRequest() {
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
-    name: user?.name || "",
+    name: user?.nome || "",
     email: user?.email || "",
     phone: "",
     department: "",
@@ -25,7 +25,7 @@ export default function SearchRequest() {
     onSuccess: () => {
       toast.success("Solicitação enviada com sucesso!");
       setFormData({
-        name: user?.name || "",
+        name: user?.nome || "",
         email: user?.email || "",
         phone: "",
         department: "",

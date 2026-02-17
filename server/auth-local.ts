@@ -38,8 +38,8 @@ export async function getUserByEmail(email: string) {
 export async function createUserWithPassword(
   email: string,
   password: string,
-  name: string,
-  role: "user" | "admin" = "user"
+  nome: string,
+  tipo_de_user: "user" | "admin" = "user"
 ) {
   const db = await getDb();
   if (!db) {
@@ -62,14 +62,14 @@ export async function createUserWithPassword(
   await db.insert(users).values({
     openId,
     email,
-    password: hashedPassword,
-    name,
+    senha: hashedPassword,
+    nome,
     loginMethod: "email",
-    role,
+    tipo_de_user,
     lastSignedIn: new Date(),
   });
 
-  return { email, name, role };
+  return { email, nome, tipo_de_user };
 }
 
 /**
@@ -78,11 +78,11 @@ export async function createUserWithPassword(
 export async function validateCredentials(email: string, password: string) {
   const user = await getUserByEmail(email);
 
-  if (!user || !user.password) {
+  if (!user || !user.senha) {
     return null;
   }
 
-  const isValid = await verifyPassword(password, user.password);
+  const isValid = await verifyPassword(password, user.senha);
 
   if (!isValid) {
     return null;

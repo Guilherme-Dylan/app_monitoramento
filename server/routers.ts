@@ -28,7 +28,7 @@ export const appRouter = router({
         success: true,
       } as const;
     }),
-    loginLocal: publicProcedure
+    loginLocal: protectedProcedure
       .input(
         z.object({
           email: z.string().email("Email inválido"),
@@ -46,7 +46,7 @@ export const appRouter = router({
         
         // Criar token de sessão
         const sessionToken = await sdk.createSessionToken(user.openId || "", {
-          name: user.name || "",
+          name: user.nome || "",
         });
         
         // Definir cookie de sessão
@@ -55,47 +55,8 @@ export const appRouter = router({
         
         return {
           success: true,
-          user: { id: user.id, email: user.email, name: user.name, role: user.role },
+          user: { id: user.id, email: user.email, nome: user.nome, tipo_de_user: user.tipo_de_user },
         };
-      }),
-    registerLocal: publicProcedure
-      .input(
-        z.object({
-          email: z.string().email("Email inválido"),
-          password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
-          name: z.string().min(1, "Nome é obrigatório"),
-        })
-      )
-      .mutation(async ({ input, ctx }) => {
-        try {
-          // Criar usuário
-          const newUser = await createUserWithPassword(input.email, input.password, input.name, "user");
-          console.log("[Register] Novo usuário criado:", newUser.email);
-          
-          // Fazer login automaticamente após registro
-          const user = await validateCredentials(input.email, input.password);
-          if (!user) {
-            console.warn("[Register] Falha ao validar credenciais após registro:", input.email);
-            throw new Error("Falha ao validar credenciais após registro");
-          }
-          
-          console.log("[Register] Credenciais validadas, criando sessão para:", user.email);
-          
-          const sessionToken = await sdk.createSessionToken(user.openId || "", {
-            name: user.name || "",
-          });
-          const cookieOptions = getSessionCookieOptions(ctx.req);
-          ctx.res.cookie(COOKIE_NAME, sessionToken, cookieOptions);
-          
-          console.log("[Register] Sessão criada com sucesso para:", user.email);
-          return { success: true };
-        } catch (error) {
-          console.error("[Register] Erro durante registro:", error);
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: error instanceof Error ? error.message : "Erro ao criar usuário",
-          });
-        }
       }),
   }),
 
@@ -132,7 +93,7 @@ export const appRouter = router({
 
     getAllRequests: protectedProcedure
       .use(async ({ ctx, next }) => {
-        if (ctx.user.role !== "admin") {
+        if (ctx.user.tipo_de_user !== "admin") {
           throw new TRPCError({ code: "FORBIDDEN" });
         }
         return next({ ctx });
@@ -149,7 +110,7 @@ export const appRouter = router({
         })
       )
       .use(async ({ ctx, next }) => {
-        if (ctx.user.role !== "admin") {
+        if (ctx.user.tipo_de_user !== "admin") {
           throw new TRPCError({ code: "FORBIDDEN" });
         }
         return next({ ctx });
@@ -169,7 +130,7 @@ export const appRouter = router({
         })
       )
       .use(async ({ ctx, next }) => {
-        if (ctx.user.role !== "admin") {
+        if (ctx.user.tipo_de_user !== "admin") {
           throw new TRPCError({ code: "FORBIDDEN" });
         }
         return next({ ctx });
@@ -202,7 +163,7 @@ export const appRouter = router({
 
     getAllReports: protectedProcedure
       .use(async ({ ctx, next }) => {
-        if (ctx.user.role !== "admin") {
+        if (ctx.user.tipo_de_user !== "admin") {
           throw new TRPCError({ code: "FORBIDDEN" });
         }
         return next({ ctx });
@@ -219,7 +180,7 @@ export const appRouter = router({
         })
       )
       .use(async ({ ctx, next }) => {
-        if (ctx.user.role !== "admin") {
+        if (ctx.user.tipo_de_user !== "admin") {
           throw new TRPCError({ code: "FORBIDDEN" });
         }
         return next({ ctx });

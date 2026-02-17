@@ -97,3 +97,10 @@
 
 ## Bugs Críticos - Sessão Atual
 - [x] Filtragem de data no relatório não está funcionando - PDF vem com todos os dados (CORRIGIDO)
+
+
+## Alterações Solicitadas - Sessão Atual
+- [x] Atualizar schema do banco de dados com novos nomes de colunas (nome, tipo_de_user, senha)
+- [x] Remover opção de registro/criar conta do frontend
+- [x] Atualizar código para usar novos nomes de colunas
+- [x] Atualizar testes para novos nomes de colunas
