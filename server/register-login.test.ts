@@ -58,7 +58,7 @@ describe("auth.loginLocal", () => {
       });
       expect.fail("Should have thrown an error");
     } catch (error: any) {
-      expect(error.code).toBe("UNAUTHORIZED");
+      expect(error.code).toBe("BAD_REQUEST");
     }
   });
 
@@ -73,7 +73,7 @@ describe("auth.loginLocal", () => {
       });
       expect.fail("Should have thrown an error");
     } catch (error: any) {
-      expect(error.code).toBe("UNAUTHORIZED");
+      expect(error.code).toBe("BAD_REQUEST");
     }
   });
 
@@ -88,7 +88,7 @@ describe("auth.loginLocal", () => {
       });
       expect.fail("Should have thrown an error");
     } catch (error: any) {
-      expect(error.code).toBe("UNAUTHORIZED");
+      expect(error.code).toBe("BAD_REQUEST");
     }
   });
 });

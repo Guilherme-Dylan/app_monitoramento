@@ -22,6 +22,7 @@ export type SessionPayload = {
   openId: string;
   appId: string;
   name: string;
+  userId?: string;
 };
 
 const EXCHANGE_TOKEN_PATH = `/webdev.v1.WebDevAuthPublicService/ExchangeToken`;
@@ -160,19 +161,22 @@ class SDKServer {
   }
 
   /**
-   * Create a session token for a Manus user openId
+   * Create a session token for a Manus user openId or local userId
    * @example
    * const sessionToken = await sdk.createSessionToken(userInfo.openId);
+   * // or for local auth:
+   * const sessionToken = await sdk.createSessionToken("", { userId: user.id, name: user.nome });
    */
   async createSessionToken(
     openId: string,
-    options: { expiresInMs?: number; name?: string } = {}
+    options: { expiresInMs?: number; name?: string; userId?: string } = {}
   ): Promise<string> {
     return this.signSession(
       {
         openId,
         appId: ENV.appId,
         name: options.name || "",
+        userId: options.userId,
       },
       options
     );
@@ -187,11 +191,18 @@ class SDKServer {
     const expirationSeconds = Math.floor((issuedAt + expiresInMs) / 1000);
     const secretKey = this.getSessionSecret();
 
-    return new SignJWT({
+    const jwtPayload: Record<string, unknown> = {
       openId: payload.openId,
       appId: payload.appId,
       name: payload.name,
-    })
+    };
+    
+    // Adicionar userId para autenticação local
+    if (payload.userId) {
+      jwtPayload.userId = payload.userId;
+    }
+
+    return new SignJWT(jwtPayload)
       .setProtectedHeader({ alg: "HS256", typ: "JWT" })
       .setExpirationTime(expirationSeconds)
       .sign(secretKey);
@@ -199,7 +210,7 @@ class SDKServer {
 
   async verifySession(
     cookieValue: string | undefined | null
-  ): Promise<{ openId: string; appId: string; name: string } | null> {
+  ): Promise<{ openId: string; appId: string; name: string; userId?: string } | null> {
     if (!cookieValue) {
       console.warn("[Auth] Missing session cookie");
       return null;
@@ -210,22 +221,36 @@ class SDKServer {
       const { payload } = await jwtVerify(cookieValue, secretKey, {
         algorithms: ["HS256"],
       });
-      const { openId, appId, name } = payload as Record<string, unknown>;
+      const { openId, appId, name, userId } = payload as Record<string, unknown>;
 
-      if (
-        !isNonEmptyString(openId) ||
-        !isNonEmptyString(appId) ||
-        !isNonEmptyString(name)
-      ) {
+      // Para OAuth: precisa de openId, appId e name
+      // Para local: precisa de userId, appId e name
+      if (!isNonEmptyString(appId) || !isNonEmptyString(name)) {
         console.warn("[Auth] Session payload missing required fields");
         return null;
       }
 
-      return {
-        openId,
-        appId,
-        name,
-      };
+      // Se temos userId (autenticação local)
+      if (isNonEmptyString(userId)) {
+        return {
+          openId: (openId as string) || "",
+          appId: appId as string,
+          name: name as string,
+          userId: userId as string,
+        };
+      }
+
+      // Se temos openId (OAuth)
+      if (isNonEmptyString(openId)) {
+        return {
+          openId,
+          appId,
+          name,
+        };
+      }
+
+      console.warn("[Auth] Session has neither openId nor userId");
+      return null;
     } catch (error) {
       console.warn("[Auth] Session verification failed", String(error));
       return null;
@@ -266,9 +291,22 @@ class SDKServer {
       throw ForbiddenError("Invalid session cookie");
     }
 
-    const sessionUserId = session.openId;
     const signedInAt = new Date();
-    let user = await db.getUserByOpenId(sessionUserId);
+    let user: User | null = null;
+
+    // Autenticacao local: usar userId
+    if (session.userId) {
+      console.log("[Auth] Autenticacao local detectada, userId:", session.userId);
+      const userId = parseInt(session.userId, 10);
+      user = (await db.getUserById(userId)) || null;
+    } else if (session.openId) {
+      // Autenticacao OAuth: usar openId
+      console.log("[Auth] Autenticacao OAuth detectada, openId:", session.openId);
+      user = (await db.getUserByOpenId(session.openId)) || null;
+    } else {
+      console.error("[Auth] Session tem neither openId nem userId");
+      throw ForbiddenError("Invalid session");
+    }
 
     // If user not in DB, sync from OAuth server automatically
     if (!user) {
@@ -281,7 +319,7 @@ class SDKServer {
           loginMethod: userInfo.loginMethod ?? userInfo.platform ?? null,
           lastSignedIn: signedInAt,
         });
-        user = await db.getUserByOpenId(userInfo.openId);
+        user = (await db.getUserByOpenId(userInfo.openId)) || null;
       } catch (error) {
         console.error("[Auth] Failed to sync user from OAuth:", error);
         throw ForbiddenError("Failed to sync user info");

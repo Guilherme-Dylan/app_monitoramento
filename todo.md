@@ -114,3 +114,9 @@
 
 ## Bugs em Investigação - Sessão Atual
 - [x] Login ainda está redirecionando para OAuth mesmo após remoção (CORRIGIDO - Removido getLoginUrl do DashboardLayout)
+
+## Bugs Corrigidos - Sessão Atual (JWT com userId)
+- [x] Login com email/senha não estava criando sessão JWT válida (CORRIGIDO - Modificado createSessionToken para aceitar userId)
+- [x] Autenticação local não estava sendo reconhecida pelo sistema (CORRIGIDO - Modificado authenticateRequest para buscar usuário por userId)
+- [x] Erro 10001 ao fazer login (CORRIGIDO - Implementado suporte completo a JWT com userId)
+- [x] Testes de autenticação local com JWT (ADICIONADO - 4 novos testes em login-local-jwt.test.ts)

@@ -1,0 +1,22 @@
+{
+  "query": "INSERT INTO users (email, senha, nome, tipo_de_user, loginMethod, createdAt, updatedAt, lastSignedIn) VALUES ('testuser@example.com', '$2b$10$xIVoFfoKeXmv9CLB4saiDO/MvncTveSXtl6oYuFfwfvOljMhFidze', 'Test User', 'user', 'local', NOW(), NOW(), NOW()) ON DUPLICATE KEY UPDATE senha=VALUES(senha), nome=VALUES(nome); SELECT * FROM users WHERE email='testuser@example.com';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 7rsxSUw4G4kDLqB.root --database KZsZuqK2nGJGrzZmb7qczS --execute INSERT INTO users (email, senha, nome, tipo_de_user, loginMethod, createdAt, updatedAt, lastSignedIn) VALUES ('testuser@example.com', '$2b$10$xIVoFfoKeXmv9CLB4saiDO/MvncTveSXtl6oYuFfwfvOljMhFidze', 'Test User', 'user', 'local', NOW(), NOW(), NOW()) ON DUPLICATE KEY UPDATE senha=VALUES(senha), nome=VALUES(nome); SELECT * FROM users WHERE email='testuser@example.com';",
+  "rows": [
+    {
+      "id": "450024",
+      "openId": "NULL",
+      "nome": "Test User",
+      "email": "testuser@example.com",
+      "loginMethod": "local",
+      "tipo_de_user": "user",
+      "createdAt": "2026-02-17 15:32:30",
+      "updatedAt": "2026-02-17 15:32:30",
+      "lastSignedIn": "2026-02-17 15:32:30",
+      "senha": "$2b$10$xIVoFfoKeXmv9CLB4saiDO/MvncTveSXtl6oYuFfwfvOljMhFidze"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\topenId\tnome\temail\tloginMethod\ttipo_de_user\tcreatedAt\tupdatedAt\tlastSignedIn\tsenha\n450024\tNULL\tTest User\ttestuser@example.com\tlocal\tuser\t2026-02-17 15:32:30\t2026-02-17 15:32:30\t2026-02-17 15:32:30\t$2b$10$xIVoFfoKeXmv9CLB4saiDO/MvncTveSXtl6oYuFfwfvOljMhFidze\n",
+  "stderr": "",
+  "execution_time_ms": 64
+}

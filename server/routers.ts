@@ -28,7 +28,7 @@ export const appRouter = router({
         success: true,
       } as const;
     }),
-    loginLocal: protectedProcedure
+    loginLocal: publicProcedure
       .input(
         z.object({
           email: z.string().email("Email inválido"),
@@ -44,8 +44,9 @@ export const appRouter = router({
           });
         }
         
-        // Criar token de sessão
-        const sessionToken = await sdk.createSessionToken(user.openId || "", {
+        // Criar token de sessão com userId para autenticação local
+        const sessionToken = await sdk.createSessionToken("", {
+          userId: user.id.toString(),
           name: user.nome || "",
         });
         
