@@ -104,3 +104,9 @@
 - [x] Remover opção de registro/criar conta do frontend
 - [x] Atualizar código para usar novos nomes de colunas
 - [x] Atualizar testes para novos nomes de colunas
+
+
+## Bugs Críticos - Nova Sessão
+- [x] Login está redirecionando para OAuth ao invés de usar autenticação local (CORRIGIDO)
+- [x] Remover integração OAuth completamente (CORRIGIDO)
+- [x] Usar apenas email/senha para login (CORRIGIDO)

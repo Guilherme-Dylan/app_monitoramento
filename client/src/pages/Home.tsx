@@ -46,14 +46,9 @@ export default function Home() {
                 </Button>
               </>
             ) : (
-              <div className="flex gap-2">
-                <Button asChild variant="outline">
-                  <Link href="/login">Email/Senha</Link>
-                </Button>
-                <Button asChild className="bg-blue-600 hover:bg-blue-700 text-white">
-                  <a href={getLoginUrl()}>OAuth</a>
-                </Button>
-              </div>
+              <Button asChild className="bg-blue-600 hover:bg-blue-700 text-white">
+                <Link href="/login">Entrar</Link>
+              </Button>
             )}
           </div>
         </div>
