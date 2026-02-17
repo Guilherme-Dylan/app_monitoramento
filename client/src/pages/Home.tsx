@@ -1,7 +1,7 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { getLoginUrl } from "@/const";
+// Removido getLoginUrl - usando apenas autenticação local
 import { Link } from "wouter";
 import { Shield, FileText, AlertCircle, BarChart3, LogOut } from "lucide-react";
 
@@ -192,10 +192,7 @@ export default function Home() {
               </p>
               <div className="flex gap-2">
                 <Button asChild className="bg-blue-600 hover:bg-blue-700 text-white">
-                  <Link href="/login">Login com Email/Senha</Link>
-                </Button>
-                <Button asChild variant="outline">
-                  <a href={getLoginUrl()}>Login com OAuth</a>
+                  <Link href="/login">Fazer Login</Link>
                 </Button>
               </div>
             </CardContent>
