@@ -110,3 +110,7 @@
 - [x] Login está redirecionando para OAuth ao invés de usar autenticação local (CORRIGIDO)
 - [x] Remover integração OAuth completamente (CORRIGIDO)
 - [x] Usar apenas email/senha para login (CORRIGIDO)
+
+
+## Bugs em Investigação - Sessão Atual
+- [x] Login ainda está redirecionando para OAuth mesmo após remoção (CORRIGIDO - Removido getLoginUrl do DashboardLayout)
