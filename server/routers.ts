@@ -44,10 +44,11 @@ export const appRouter = router({
           });
         }
         
-        // Criar token de sessão com userId para autenticação local
+        // Criar token de sessao com userId para autenticacao local
         const sessionToken = await sdk.createSessionToken("", {
           userId: user.id.toString(),
           name: user.nome || "",
+          role: user.tipo_de_user,
         });
         
         // Definir cookie de sessão

@@ -1,0 +1,16 @@
+{
+  "query": "SELECT id, email, nome, tipo_de_user FROM users WHERE email = 'admin@anml.com';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 7rsxSUw4G4kDLqB.root --database KZsZuqK2nGJGrzZmb7qczS --execute SELECT id, email, nome, tipo_de_user FROM users WHERE email = 'admin@anml.com';",
+  "rows": [
+    {
+      "id": "450027",
+      "email": "admin@anml.com",
+      "nome": "Guilherme",
+      "tipo_de_user": "admin"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\temail\tnome\ttipo_de_user\n450027\tadmin@anml.com\tGuilherme\tadmin\n",
+  "stderr": "",
+  "execution_time_ms": 114
+}

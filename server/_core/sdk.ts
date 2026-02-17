@@ -23,6 +23,7 @@ export type SessionPayload = {
   appId: string;
   name: string;
   userId?: string;
+  role?: string; // 'user' ou 'admin'
 };
 
 const EXCHANGE_TOKEN_PATH = `/webdev.v1.WebDevAuthPublicService/ExchangeToken`;
@@ -169,7 +170,7 @@ class SDKServer {
    */
   async createSessionToken(
     openId: string,
-    options: { expiresInMs?: number; name?: string; userId?: string } = {}
+    options: { expiresInMs?: number; name?: string; userId?: string; role?: string } = {}
   ): Promise<string> {
     return this.signSession(
       {
@@ -177,6 +178,7 @@ class SDKServer {
         appId: ENV.appId,
         name: options.name || "",
         userId: options.userId,
+        role: options.role,
       },
       options
     );
@@ -197,9 +199,14 @@ class SDKServer {
       name: payload.name,
     };
     
-    // Adicionar userId para autenticação local
+    // Adicionar userId para autenticacao local
     if (payload.userId) {
       jwtPayload.userId = payload.userId;
+    }
+    
+    // Adicionar role (user ou admin)
+    if (payload.role) {
+      jwtPayload.role = payload.role;
     }
 
     return new SignJWT(jwtPayload)
@@ -210,7 +217,7 @@ class SDKServer {
 
   async verifySession(
     cookieValue: string | undefined | null
-  ): Promise<{ openId: string; appId: string; name: string; userId?: string } | null> {
+  ): Promise<{ openId: string; appId: string; name: string; userId?: string; role?: string } | null> {
     if (!cookieValue) {
       console.warn("[Auth] Missing session cookie");
       return null;
@@ -221,7 +228,7 @@ class SDKServer {
       const { payload } = await jwtVerify(cookieValue, secretKey, {
         algorithms: ["HS256"],
       });
-      const { openId, appId, name, userId } = payload as Record<string, unknown>;
+      const { openId, appId, name, userId, role } = payload as Record<string, unknown>;
 
       // Para OAuth: precisa de openId, appId e name
       // Para local: precisa de userId, appId e name
@@ -230,13 +237,14 @@ class SDKServer {
         return null;
       }
 
-      // Se temos userId (autenticação local)
+      // Se temos userId (autenticacao local)
       if (isNonEmptyString(userId)) {
         return {
           openId: (openId as string) || "",
           appId: appId as string,
           name: name as string,
           userId: userId as string,
+          role: isNonEmptyString(role) ? (role as string) : undefined,
         };
       }
 
@@ -246,6 +254,7 @@ class SDKServer {
           openId,
           appId,
           name,
+          role: isNonEmptyString(role) ? (role as string) : undefined,
         };
       }
 
@@ -330,10 +339,17 @@ class SDKServer {
       throw ForbiddenError("User not found");
     }
 
-    await db.upsertUser({
-      openId: user.openId,
-      lastSignedIn: signedInAt,
-    });
+    // Para autenticação local, apenas atualizar lastSignedIn
+    // Para OAuth, fazer upsert completo
+    if (session.userId) {
+      const userId = parseInt(session.userId, 10);
+      await db.updateUserLastSignedIn(userId);
+    } else if (user.openId) {
+      await db.upsertUser({
+        openId: user.openId,
+        lastSignedIn: signedInAt,
+      });
+    }
 
     return user;
   }

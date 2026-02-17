@@ -120,3 +120,9 @@
 - [x] Autenticação local não estava sendo reconhecida pelo sistema (CORRIGIDO - Modificado authenticateRequest para buscar usuário por userId)
 - [x] Erro 10001 ao fazer login (CORRIGIDO - Implementado suporte completo a JWT com userId)
 - [x] Testes de autenticação local com JWT (ADICIONADO - 4 novos testes em login-local-jwt.test.ts)
+
+
+## Bugs Corrigidos - Sessão Final (Admin Access)
+- [x] Admin nao conseguia acessar painel administrativo apos login (CORRIGIDO)
+- [x] tipo_de_user nao era preservado na sessao (CORRIGIDO)
+- [x] Acesso ao painel administrativo agora funciona corretamente

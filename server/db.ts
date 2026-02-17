@@ -113,6 +113,21 @@ export async function getUserByEmail(email: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
+export async function updateUserLastSignedIn(userId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot update user: database not available");
+    return;
+  }
+
+  try {
+    await db.update(users).set({ lastSignedIn: new Date() }).where(eq(users.id, userId));
+  } catch (error) {
+    console.error("[Database] Failed to update user lastSignedIn:", error);
+    throw error;
+  }
+}
+
 export async function createSearchRequest(request: InsertSearchRequest) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
