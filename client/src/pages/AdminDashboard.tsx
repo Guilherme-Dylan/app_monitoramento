@@ -261,7 +261,7 @@ export default function AdminDashboard() {
                         </div>
                         <div>
                           <p className="text-xs text-slate-500 uppercase font-semibold">Data</p>
-                          <p className="text-sm text-slate-700">{format(new Date(visit.visitDate), "dd/MM/yyyy HH:mm", { locale: ptBR })}</p>
+                          <p className="text-sm text-slate-700">{visit.visitDate ? format(new Date(visit.visitDate), "dd/MM/yyyy HH:mm", { locale: ptBR }) : "Data não definida"}</p>
                         </div>
                         <div>
                           <p className="text-xs text-slate-500 uppercase font-semibold">Local</p>
