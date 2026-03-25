@@ -26,11 +26,11 @@ export default function Login() {
       if (result.success) {
         toast.success("Login realizado com sucesso!");
         
-        // Invalidar cache de autenticação para forçar refetch
-        await utils.auth.me.invalidate();
+        // Atualizar cache com dados do usuário
+        utils.auth.me.setData(undefined, result.user as any);
         
         // Redirecionar para home após login
-        setTimeout(() => setLocation("/"), 500);
+        setTimeout(() => setLocation("/"), 100);
       }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Erro ao fazer login");
