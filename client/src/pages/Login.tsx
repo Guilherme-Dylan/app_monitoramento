@@ -21,8 +21,8 @@ export default function Login() {
       // Aguardar um pouco para garantir que o cookie foi salvo
       await new Promise(resolve => setTimeout(resolve, 500));
       
-      // Redirecionar para home
-      setLocation("/");
+      // Redirecionar para home usando window.location para garantir recarregamento
+      window.location.href = "/";
     },
     onError: (error) => {
       toast.error(error.message || "Erro ao fazer login");
