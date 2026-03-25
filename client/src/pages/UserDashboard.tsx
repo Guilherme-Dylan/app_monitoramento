@@ -85,8 +85,17 @@ export default function UserDashboard() {
                         Enviado em {format(new Date(request.createdAt), "dd 'de' MMMM 'de' yyyy 'às' HH:mm", { locale: ptBR })}
                       </p>
                     </div>
-                    <div className="flex-shrink-0">
+                    <div className="flex-shrink-0 flex flex-col gap-2 items-end">
                       {getStatusBadge(request.status)}
+                      {request.status === "approved" && (
+                        <Button
+                          size="sm"
+                          onClick={() => setSelectedRequestId(request.id)}
+                          className="bg-blue-600 hover:bg-blue-700 text-white whitespace-nowrap"
+                        >
+                          📅 Agendar Visita
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </CardContent>
