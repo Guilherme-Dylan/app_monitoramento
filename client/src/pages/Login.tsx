@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -8,6 +9,7 @@ import { toast } from "sonner";
 import { Shield, Mail, Lock } from "lucide-react";
 
 export default function Login() {
+  const [, setLocation] = useLocation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -26,14 +28,16 @@ export default function Login() {
         // Atualizar cache com dados do usuário
         utils.auth.me.setData(undefined, result.user as any);
         
+        // Armazenar dados do usuário em localStorage
+        localStorage.setItem("user", JSON.stringify(result.user));
+        
         toast.success("Login realizado com sucesso!");
         
-        // Redirecionar usando window.location.href
-        setTimeout(() => {
-          window.location.href = "/";
-        }, 500);
+        // Redirecionar para home
+        setLocation("/");
       }
     } catch (error) {
+      console.error("[Login] Erro:", error);
       toast.error(error instanceof Error ? error.message : "Erro ao fazer login");
     } finally {
       setIsLoading(false);

@@ -21,6 +21,7 @@ export function useAuth(options?: UseAuthOptions) {
   const logoutMutation = trpc.auth.logout.useMutation({
     onSuccess: () => {
       utils.auth.me.setData(undefined, null);
+      localStorage.removeItem("user");
     },
   });
 
@@ -37,20 +38,37 @@ export function useAuth(options?: UseAuthOptions) {
       throw error;
     } finally {
       utils.auth.me.setData(undefined, null);
+      localStorage.removeItem("user");
       await utils.auth.me.invalidate();
     }
   }, [logoutMutation, utils]);
 
   const state = useMemo(() => {
+    // Tentar obter usuário da query do servidor
+    let user = meQuery.data ?? null;
+    
+    // Se não houver usuário da query, tentar obter do localStorage
+    if (!user && typeof window !== "undefined") {
+      try {
+        const storedUser = localStorage.getItem("user");
+        if (storedUser) {
+          user = JSON.parse(storedUser);
+        }
+      } catch (error) {
+        console.error("[Auth] Erro ao ler usuário do localStorage:", error);
+      }
+    }
+    
     localStorage.setItem(
       "manus-runtime-user-info",
-      JSON.stringify(meQuery.data)
+      JSON.stringify(user)
     );
+    
     return {
-      user: meQuery.data ?? null,
+      user,
       loading: meQuery.isLoading || logoutMutation.isPending,
       error: meQuery.error ?? logoutMutation.error ?? null,
-      isAuthenticated: Boolean(meQuery.data),
+      isAuthenticated: Boolean(user),
     };
   }, [
     meQuery.data,

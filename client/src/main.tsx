@@ -44,6 +44,7 @@ const trpcClient = trpc.createClient({
       url: "/api/trpc",
       transformer: superjson,
       fetch(input, init) {
+        console.log("[TRPC] Enviando requisição com credentials: include");
         return globalThis.fetch(input, {
           ...(init ?? {}),
           credentials: "include",
