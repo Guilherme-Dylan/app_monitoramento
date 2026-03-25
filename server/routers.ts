@@ -1,9 +1,9 @@
-import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router, protectedProcedure } from "./_core/trpc";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { COOKIE_NAME } from "../shared/const";
+import { getSessionCookieOptions } from "./_core/cookies";
 import {
   createSearchRequest,
   getAllSearchRequests,
@@ -12,6 +12,11 @@ import {
   createAnonymousReport,
   getAllAnonymousReports,
   updateAnonymousReportStatus,
+  createVisitSchedule,
+  getUserVisits,
+  getAllVisits,
+  updateVisitStatus,
+  getVisitsByDateRange,
 } from "./db";
 import { generateReportHTML } from "./reports";
 import { validateCredentials, createUserWithPassword } from "./auth-local";
@@ -140,6 +145,66 @@ export const appRouter = router({
       .query(async ({ input }) => {
         const html = await generateReportHTML(input.selectedDate);
         return { html };
+      }),
+  }),
+
+  // Procedimentos para agendamentos de visita
+  visits: router({
+    create: protectedProcedure
+      .input(
+        z.object({
+          requestId: z.number(),
+          scheduledDate: z.date(),
+          reason: z.string().optional(),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        if (!ctx.user) throw new TRPCError({ code: "UNAUTHORIZED" });
+        
+        await createVisitSchedule({
+          userId: ctx.user.id,
+          requestId: input.requestId,
+          scheduledDate: input.scheduledDate,
+          reason: input.reason || null,
+          status: "pending",
+        });
+        return { success: true };
+      }),
+
+    getUserVisits: protectedProcedure
+      .query(async ({ ctx }) => {
+        if (!ctx.user) throw new TRPCError({ code: "UNAUTHORIZED" });
+        return await getUserVisits(ctx.user.id);
+      }),
+
+    getAll: protectedProcedure
+      .use(async ({ ctx, next }) => {
+        if (ctx.user?.tipo_de_user !== "admin") {
+          throw new TRPCError({ code: "FORBIDDEN" });
+        }
+        return next({ ctx });
+      })
+      .query(async () => {
+        return await getAllVisits();
+      }),
+
+    updateStatus: protectedProcedure
+      .use(async ({ ctx, next }) => {
+        if (ctx.user?.tipo_de_user !== "admin") {
+          throw new TRPCError({ code: "FORBIDDEN" });
+        }
+        return next({ ctx });
+      })
+      .input(
+        z.object({
+          visitId: z.number(),
+          status: z.enum(["pending", "approved", "rejected", "completed"]),
+          adminNotes: z.string().optional(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        await updateVisitStatus(input.visitId, input.status, input.adminNotes);
+        return { success: true };
       }),
   }),
 

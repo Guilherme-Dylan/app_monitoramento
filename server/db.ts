@@ -1,6 +1,6 @@
-import { eq } from "drizzle-orm";
+import { eq, and, gte, lte } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, InsertSearchRequest, searchRequests, InsertAnonymousReport, anonymousReports } from "../drizzle/schema";
+import { InsertUser, users, InsertSearchRequest, searchRequests, InsertAnonymousReport, anonymousReports, InsertVisitSchedule, visitSchedules } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -177,4 +177,51 @@ export async function updateAnonymousReportStatus(id: number, status: "pending" 
   if (!db) throw new Error("Database not available");
 
   await db.update(anonymousReports).set({ status }).where(eq(anonymousReports.id, id));
+}
+
+// Funções para agendamentos de visita
+export async function createVisitSchedule(visit: InsertVisitSchedule) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db.insert(visitSchedules).values(visit);
+  return result;
+}
+
+export async function getUserVisits(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(visitSchedules).where(eq(visitSchedules.userId, userId));
+}
+
+export async function getAllVisits() {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(visitSchedules);
+}
+
+export async function updateVisitStatus(visitId: number, status: "pending" | "approved" | "rejected" | "completed", adminNotes?: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const updateData: any = { status };
+  if (adminNotes !== undefined) {
+    updateData.adminNotes = adminNotes;
+  }
+
+  await db.update(visitSchedules).set(updateData).where(eq(visitSchedules.id, visitId));
+}
+
+export async function getVisitsByDateRange(startDate: Date, endDate: Date) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(visitSchedules).where(
+    and(
+      gte(visitSchedules.scheduledDate, startDate),
+      lte(visitSchedules.scheduledDate, endDate)
+    )
+  );
 }
