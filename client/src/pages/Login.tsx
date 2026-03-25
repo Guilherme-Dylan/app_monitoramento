@@ -23,14 +23,15 @@ export default function Login() {
 
     try {
       const result = await loginMutation.mutateAsync({ email, password });
+      
       if (result.success) {
-        toast.success("Login realizado com sucesso!");
-        
-        // Atualizar cache com dados do usuário
+        // Atualizar cache com dados do usuário ANTES de redirecionar
         utils.auth.me.setData(undefined, result.user as any);
         
-        // Redirecionar para home após login
-        setTimeout(() => setLocation("/"), 100);
+        toast.success("Login realizado com sucesso!");
+        
+        // Redirecionar imediatamente
+        setLocation("/");
       }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Erro ao fazer login");
