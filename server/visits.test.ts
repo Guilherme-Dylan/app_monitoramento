@@ -59,6 +59,36 @@ describe("Visit Scheduling", () => {
     // Pode ser que não haja visitas ainda, então apenas verificamos que é um array
   });
 
+  it("should return visit with user information", async () => {
+    const allVisits = await getAllVisits();
+    
+    if (allVisits.length > 0) {
+      const visit = allVisits[0];
+      // Verificar que o JOIN retornou os dados do usuário
+      expect(visit).toHaveProperty("userName");
+      expect(visit).toHaveProperty("userEmail");
+    }
+  });
+
+  it("should include all required fields in visit response", async () => {
+    const allVisits = await getAllVisits();
+    
+    if (allVisits.length > 0) {
+      const visit = allVisits[0];
+      expect(visit).toHaveProperty("id");
+      expect(visit).toHaveProperty("userId");
+      expect(visit).toHaveProperty("requestId");
+      expect(visit).toHaveProperty("scheduledDate");
+      expect(visit).toHaveProperty("reason");
+      expect(visit).toHaveProperty("status");
+      expect(visit).toHaveProperty("adminNotes");
+      expect(visit).toHaveProperty("createdAt");
+      expect(visit).toHaveProperty("updatedAt");
+      expect(visit).toHaveProperty("userName");
+      expect(visit).toHaveProperty("userEmail");
+    }
+  });
+
   it("should have correct visit properties", async () => {
     const visits = await getUserVisits(testUserId);
     

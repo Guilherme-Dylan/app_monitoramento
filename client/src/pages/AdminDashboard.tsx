@@ -254,18 +254,22 @@ export default function AdminDashboard() {
                 {visits.map((visit: any) => (
                   <Card key={visit.id} className="border-slate-200">
                     <CardContent className="pt-6">
-                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
                         <div>
                           <p className="text-xs text-slate-500 uppercase font-semibold">Usuário</p>
-                          <p className="text-sm font-medium text-slate-900">{visit.userName}</p>
+                          <p className="text-sm font-medium text-slate-900">{visit.userName || "N/A"}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500 uppercase font-semibold">Email</p>
+                          <p className="text-sm text-slate-700">{visit.userEmail || "N/A"}</p>
                         </div>
                         <div>
                           <p className="text-xs text-slate-500 uppercase font-semibold">Data</p>
-                          <p className="text-sm text-slate-700">{visit.visitDate ? format(new Date(visit.visitDate), "dd/MM/yyyy HH:mm", { locale: ptBR }) : "Data não definida"}</p>
+                          <p className="text-sm text-slate-700">{visit.scheduledDate ? format(new Date(visit.scheduledDate), "dd/MM/yyyy HH:mm", { locale: ptBR }) : "Data não definida"}</p>
                         </div>
                         <div>
-                          <p className="text-xs text-slate-500 uppercase font-semibold">Local</p>
-                          <p className="text-sm text-slate-700">{visit.location}</p>
+                          <p className="text-xs text-slate-500 uppercase font-semibold">Motivo</p>
+                          <p className="text-sm text-slate-700">{visit.reason || "N/A"}</p>
                         </div>
                         <div>
                           <p className="text-xs text-slate-500 uppercase font-semibold">Status</p>
@@ -273,8 +277,8 @@ export default function AdminDashboard() {
                         </div>
                       </div>
                       <div className="mb-4">
-                        <p className="text-xs text-slate-500 uppercase font-semibold mb-2">Observações</p>
-                        <p className="text-sm text-slate-700 bg-slate-50 p-3 rounded">{visit.notes || "Sem observações"}</p>
+                        <p className="text-xs text-slate-500 uppercase font-semibold mb-2">Observações Administrativas</p>
+                        <p className="text-sm text-slate-700 bg-slate-50 p-3 rounded">{visit.adminNotes || "Sem observações"}</p>
                       </div>
                       <div className="flex gap-2 flex-wrap">
                         <Button

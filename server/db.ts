@@ -1,4 +1,5 @@
 import { eq, and, gte, lte } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { InsertUser, users, InsertSearchRequest, searchRequests, InsertAnonymousReport, anonymousReports, InsertVisitSchedule, visitSchedules } from "../drizzle/schema";
 import { ENV } from './_core/env';
@@ -199,7 +200,19 @@ export async function getAllVisits() {
   const db = await getDb();
   if (!db) return [];
 
-  return await db.select().from(visitSchedules);
+  return await db.select({
+    id: visitSchedules.id,
+    userId: visitSchedules.userId,
+    requestId: visitSchedules.requestId,
+    scheduledDate: visitSchedules.scheduledDate,
+    reason: visitSchedules.reason,
+    status: visitSchedules.status,
+    adminNotes: visitSchedules.adminNotes,
+    createdAt: visitSchedules.createdAt,
+    updatedAt: visitSchedules.updatedAt,
+    userName: users.nome,
+    userEmail: users.email,
+  }).from(visitSchedules).leftJoin(users, eq(visitSchedules.userId, users.id));
 }
 
 export async function updateVisitStatus(visitId: number, status: "pending" | "approved" | "rejected" | "completed", adminNotes?: string) {
