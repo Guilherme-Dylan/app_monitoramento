@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
-import { Shield, Mail, Lock } from "lucide-react";
+import { Shield, Mail, Lock, AlertCircle } from "lucide-react";
 
 export default function Login() {
   const [, setLocation] = useLocation();
@@ -14,31 +14,32 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const utils = trpc.useUtils();
-  const loginMutation = trpc.auth.loginLocal.useMutation();
+  const loginMutation = trpc.auth.loginLocal.useMutation({
+    onSuccess: async () => {
+      toast.success("Login realizado com sucesso!");
+      
+      // Aguardar um pouco para garantir que o cookie foi salvo
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Redirecionar para home
+      setLocation("/");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Erro ao fazer login");
+    },
+  });
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    
+    if (!email || !password) {
+      toast.error("Preencha todos os campos");
+      return;
+    }
 
+    setIsLoading(true);
     try {
-      const result = await loginMutation.mutateAsync({ email, password });
-      
-      if (result.success) {
-        // Atualizar cache com dados do usuário
-        utils.auth.me.setData(undefined, result.user as any);
-        
-        // Armazenar dados do usuário em localStorage
-        localStorage.setItem("user", JSON.stringify(result.user));
-        
-        toast.success("Login realizado com sucesso!");
-        
-        // Redirecionar para home
-        setLocation("/");
-      }
-    } catch (error) {
-      console.error("[Login] Erro:", error);
-      toast.error(error instanceof Error ? error.message : "Erro ao fazer login");
+      await loginMutation.mutateAsync({ email, password });
     } finally {
       setIsLoading(false);
     }
@@ -78,6 +79,7 @@ export default function Login() {
                     onChange={(e) => setEmail(e.target.value)}
                     className="pl-10"
                     required
+                    disabled={isLoading || loginMutation.isPending}
                   />
                 </div>
               </div>
@@ -94,25 +96,27 @@ export default function Login() {
                     onChange={(e) => setPassword(e.target.value)}
                     className="pl-10"
                     required
+                    disabled={isLoading || loginMutation.isPending}
                   />
                 </div>
               </div>
 
               <Button
                 type="submit"
-                disabled={isLoading}
+                disabled={isLoading || loginMutation.isPending}
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium"
               >
-                {isLoading ? "Fazendo login..." : "Entrar"}
+                {isLoading || loginMutation.isPending ? "Fazendo login..." : "Entrar"}
               </Button>
             </form>
 
             {/* Info Message */}
-            <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-sm text-blue-800">
-                <strong>Nota:</strong> Apenas administradores podem criar novas contas. 
-                Solicite ao administrador do sistema para criar sua conta.
-              </p>
+            <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg flex gap-3">
+              <AlertCircle className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
+              <div className="text-sm text-blue-800">
+                <p className="font-medium mb-1">Informação Importante:</p>
+                <p>Cada dispositivo precisa fazer login separadamente. A sessão é mantida através de cookies seguros.</p>
+              </div>
             </div>
           </CardContent>
         </Card>
