@@ -1,0 +1,41 @@
+name: Auto Deploy to Manus
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9
+          
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        
+      - name: Run tests
+        run: pnpm test
+        
+      - name: Build project
+        run: pnpm build
+        
+      - name: Notify deployment
+        if: success()
+        run: |
+          echo "✅ Build e testes passaram com sucesso!"
+          echo "📦 Projeto pronto para deploy"
+          echo "🚀 Para publicar, acesse o Management UI e clique em 'Publish'"
