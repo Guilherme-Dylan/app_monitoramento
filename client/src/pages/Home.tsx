@@ -24,7 +24,7 @@ export default function Home() {
     <div className="theme-page min-h-screen">
       <AppHeader isAuthenticated={isAuthenticated} userName={user?.nome} onLogout={logout} />
 
-      <main className="theme-container pb-14">
+      <main className="theme-container theme-main">
         <HeroSection />
 
         {!isAuthenticated ? (

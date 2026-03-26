@@ -1,5 +1,6 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { RealtimeNotifications } from "@/components/RealtimeNotifications";
 import NotFound from "@/pages/NotFound";
 import Home from "@/pages/Home";
 import Login from "@/pages/Login";
@@ -35,6 +36,7 @@ function App() {
       <ThemeProvider defaultTheme="light">
         <TooltipProvider>
           <Toaster />
+          <RealtimeNotifications />
           <Router />
         </TooltipProvider>
       </ThemeProvider>

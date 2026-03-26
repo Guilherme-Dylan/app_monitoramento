@@ -10,14 +10,14 @@ type AppHeaderProps = {
 
 export function AppHeader({ isAuthenticated, userName, onLogout }: AppHeaderProps) {
   return (
-    <header className="theme-header sticky top-0 z-50">
+    <header className="theme-header">
       <div className="theme-container flex items-center justify-between py-4">
-        <div className="flex items-center gap-3">
+        <Link href="/" className="flex items-center gap-3">
           <Shield className="h-8 w-8 text-[var(--brand-blue)]" />
           <span className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[var(--brand-blue-deep)]">
             Monitoramento
           </span>
-        </div>
+        </Link>
 
         {isAuthenticated ? (
           <div className="flex items-center gap-4">
