@@ -4,13 +4,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { AppHeader } from "@/components/home/AppHeader";
 import { trpc } from "@/lib/trpc";
 import { useState } from "react";
 import { toast } from "sonner";
-import { AlertCircle, CheckCircle } from "lucide-react";
+import { AlertCircle, ArrowLeft } from "lucide-react";
+import { Link } from "wouter";
 
 export default function SearchRequest() {
-  const { user } = useAuth();
+  const { user, logout, isAuthenticated } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: user?.nome || "",
@@ -61,22 +63,27 @@ export default function SearchRequest() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-2xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">Solicitação de Busca</h1>
-          <p className="text-slate-600">Preencha o formulário abaixo para fazer uma solicitação de busca</p>
-        </div>
+    <div className="theme-page min-h-screen">
+      <AppHeader isAuthenticated={isAuthenticated} userName={user?.nome} onLogout={logout} />
 
-        <Card className="border-slate-200 shadow-sm">
-          <CardHeader>
-            <CardTitle>Formulário de Solicitação</CardTitle>
-            <CardDescription>
-              Todos os campos marcados com * são obrigatórios
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
+      <main className="theme-container theme-main">
+        <div className="max-w-3xl mx-auto">
+          <div className="mb-8 text-center">
+            <h1 className="theme-hero-title mb-2">Solicitação de busca</h1>
+            <p className="theme-hero-subtitle">
+              Preencha os dados abaixo para registrar uma solicitação com segurança.
+            </p>
+          </div>
+
+          <Card className="premium-card premium-card-blue">
+            <CardHeader>
+              <CardTitle>Formulário de solicitação</CardTitle>
+              <CardDescription>
+                Todos os campos marcados com * são obrigatórios.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-6">
               {/* Nome */}
               <div>
                 <Label htmlFor="name" className="text-slate-700 font-medium">
@@ -177,25 +184,34 @@ export default function SearchRequest() {
               </div>
 
               {/* Info Box */}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex gap-3">
+              <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex gap-3">
                 <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
                 <p className="text-sm text-blue-800">
                   Sua solicitação será analisada pela equipe de monitoramento. Você receberá uma resposta em breve.
                 </p>
               </div>
 
-              {/* Botão Submit */}
               <Button
                 type="submit"
                 disabled={isSubmitting || createMutation.isPending}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2"
+                className="btn-premium btn-premium-blue w-full"
               >
                 {isSubmitting || createMutation.isPending ? "Enviando..." : "Enviar Solicitação"}
               </Button>
+
+              <div className="flex justify-center">
+                <Button asChild variant="outline" className="rounded-xl">
+                  <Link href="/" className="inline-flex items-center gap-2">
+                    <ArrowLeft className="w-4 h-4" />
+                    Voltar ao menu
+                  </Link>
+                </Button>
+              </div>
             </form>
-          </CardContent>
-        </Card>
-      </div>
+            </CardContent>
+          </Card>
+        </div>
+      </main>
     </div>
   );
 }

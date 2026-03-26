@@ -8,6 +8,7 @@ import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { Shield, Mail, Lock, ArrowLeft } from "lucide-react";
 import { Link } from "wouter";
+import { AppHeader } from "@/components/home/AppHeader";
 
 export default function Login() {
   const [, setLocation] = useLocation();
@@ -51,88 +52,88 @@ export default function Login() {
   };
 
   return (
-    <div className="theme-page min-h-screen flex items-center justify-center px-4">
-      <div className="w-full max-w-md">
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <Shield className="w-8 h-8 text-blue-600" />
-            <h1 className="text-3xl font-extrabold text-[var(--brand-blue-deep)]">Monitoramento</h1>
+    <div className="theme-page min-h-screen">
+      <AppHeader isAuthenticated={false} onLogout={async () => {}} />
+
+      <main className="theme-container theme-main flex items-center justify-center px-4">
+        <div className="w-full max-w-md">
+          <div className="text-center mb-8">
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <Shield className="w-8 h-8 text-blue-600" />
+              <h1 className="text-3xl font-extrabold text-[var(--brand-blue-deep)]">Monitoramento</h1>
+            </div>
+            <p className="text-[var(--text-main)]">Sistema de Monitoramento Empresarial</p>
           </div>
-          <p className="text-[var(--text-main)]">Sistema de Monitoramento Empresarial</p>
+
+          <Card className="theme-surface-card bg-white/95">
+            <CardHeader>
+              <CardTitle>Fazer login</CardTitle>
+              <CardDescription>
+                Acesse com seu e-mail e senha fornecidos pelo administrador
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleLogin} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email">E-mail</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="seu@email.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="pl-10"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="password">Senha</Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
+                    <Input
+                      id="password"
+                      type="password"
+                      placeholder="••••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="pl-10"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <Button
+                  type="submit"
+                  disabled={isLoading}
+                  className="btn-premium btn-premium-blue w-full font-medium"
+                >
+                  {isLoading ? "Fazendo login..." : "Entrar"}
+                </Button>
+              </form>
+
+              <div className="mt-6 p-4 bg-[var(--surface-blue-soft)] border border-[var(--brand-blue-soft)] rounded-xl">
+                <p className="text-sm text-[var(--text-main)]">
+                  <strong>Nota:</strong> Apenas administradores podem criar novas contas.
+                  Solicite ao administrador do sistema para criar sua conta.
+                </p>
+              </div>
+
+              <div className="mt-5 flex justify-center">
+                <Button asChild variant="outline" className="rounded-xl">
+                  <Link href="/" className="inline-flex items-center gap-2">
+                    <ArrowLeft className="w-4 h-4" />
+                    Voltar ao menu
+                  </Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
-
-        {/* Login Card */}
-        <Card className="theme-surface-card">
-          <CardHeader>
-            <CardTitle>Fazer Login</CardTitle>
-            <CardDescription>
-              Acesse com seu email e senha fornecidos pelo administrador
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleLogin} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="seu@email.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="pl-10"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="password">Senha</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10"
-                    required
-                  />
-                </div>
-              </div>
-
-              <Button
-                type="submit"
-                disabled={isLoading}
-                className="btn-premium btn-premium-blue w-full font-medium"
-              >
-                {isLoading ? "Fazendo login..." : "Entrar"}
-              </Button>
-            </form>
-
-            {/* Info Message */}
-            <div className="mt-6 p-4 bg-[var(--surface-blue-soft)] border border-[var(--brand-blue-soft)] rounded-xl">
-              <p className="text-sm text-[var(--text-main)]">
-                <strong>Nota:</strong> Apenas administradores podem criar novas contas. 
-                Solicite ao administrador do sistema para criar sua conta.
-              </p>
-            </div>
-
-            <div className="mt-5 flex justify-center">
-              <Button asChild variant="outline" className="rounded-xl">
-                <Link href="/" className="inline-flex items-center gap-2">
-                  <ArrowLeft className="w-4 h-4" />
-                  Voltar ao menu
-                </Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-      </div>
+      </main>
     </div>
   );
 }

@@ -14,9 +14,8 @@ export function useAuth(options?: UseAuthOptions) {
   const utils = trpc.useUtils();
 
   const meQuery = trpc.auth.me.useQuery(undefined, {
-    retry: 1,
-    refetchOnWindowFocus: true,
-    staleTime: 1000 * 60 * 5, // 5 minutos
+    retry: false,
+    refetchOnWindowFocus: false,
   });
 
   const logoutMutation = trpc.auth.logout.useMutation({
@@ -43,14 +42,11 @@ export function useAuth(options?: UseAuthOptions) {
   }, [logoutMutation, utils]);
 
   const state = useMemo(() => {
-    // Usar apenas dados do servidor (cookie)
-    const user = meQuery.data ?? null;
-    
     return {
-      user,
+      user: meQuery.data ?? null,
       loading: meQuery.isLoading || logoutMutation.isPending,
       error: meQuery.error ?? logoutMutation.error ?? null,
-      isAuthenticated: Boolean(user),
+      isAuthenticated: Boolean(meQuery.data),
     };
   }, [
     meQuery.data,

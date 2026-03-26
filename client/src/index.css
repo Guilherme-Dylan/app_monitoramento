@@ -50,7 +50,7 @@
   --brand-red-deep: #c40010;
   --brand-red-soft: #ffe4e6;
   --surface-page: #f4f6fa;
-  --surface-header: #f8f9fc;
+  --surface-header: #e7ebf2;
   --surface-card: #ffffff;
   --surface-blue-soft: #f2f7ff;
   --surface-red-soft: #fff8f8;
@@ -151,19 +151,30 @@
 
 @layer components {
   .theme-page {
-    background: var(--surface-page);
+    min-height: 100vh;
+    background:
+      radial-gradient(1200px 400px at 10% -10%, rgba(37, 99, 235, 0.08), transparent 60%),
+      linear-gradient(180deg, #f9fbff 0%, var(--surface-page) 45%, #edf3ff 100%);
   }
 
   .theme-container {
-    max-width: 1140px;
+    max-width: 1200px;
     margin-inline: auto;
     padding-inline: 1.1rem;
   }
 
   .theme-header {
-    background: linear-gradient(180deg, #ffffff 0%, var(--surface-header) 100%);
-    border-bottom: 1px solid #dfe5ef;
+    background: linear-gradient(180deg, #f4f6fb 0%, var(--surface-header) 100%);
+    border-bottom: 1px solid #cfd7e4;
     box-shadow: 0 2px 10px rgba(15, 31, 74, 0.08);
+    position: fixed;
+    inset: 0 0 auto 0;
+    z-index: 50;
+  }
+
+  .theme-main {
+    padding-top: 6.2rem;
+    padding-bottom: 3rem;
   }
 
   .theme-hero-title {
@@ -191,7 +202,7 @@
   }
 
   .theme-surface-card:hover {
-    transform: translateY(-2px);
+    transform: translateY(-2px) scale(1.01);
     box-shadow: 0 15px 28px rgba(15, 31, 74, 0.12);
   }
 
@@ -271,7 +282,7 @@
   }
 
   .btn-premium:hover {
-    transform: translateY(-1px);
+    transform: translateY(-1px) scale(1.02);
     box-shadow: 0 12px 22px rgba(15, 31, 74, 0.22);
   }
 
@@ -322,6 +333,38 @@
     background: var(--brand-blue-soft);
   }
 
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    border-radius: 9999px;
+    padding: 0.3rem 0.75rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+  }
+
+  .status-pill-pending {
+    background: #fff7de;
+    color: #9a6a00;
+  }
+
+  .status-pill-approved,
+  .status-pill-resolved {
+    background: #e7f8ee;
+    color: #1d7f47;
+  }
+
+  .status-pill-rejected,
+  .status-pill-closed {
+    background: #ffe8ea;
+    color: #b41f2a;
+  }
+
+  .status-pill-under-review {
+    background: #e9f1ff;
+    color: #1d4fb3;
+  }
+
   /**
    * Custom container utility that centers content and adds responsive padding.
    *
@@ -364,6 +407,10 @@
   }
 
   @media (max-width: 768px) {
+    .theme-main {
+      padding-top: 5.6rem;
+    }
+
     .icon-box {
       width: 4.2rem;
       height: 4.2rem;

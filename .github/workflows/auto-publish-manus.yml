@@ -44,6 +44,8 @@ jobs:
 
       - name: Deploy to Manus
         if: success()
+        env:
+          MANUS_API_TOKEN: ${{ secrets.MANUS_API_TOKEN }}
         run: |
           echo "🚀 =========================================="
           echo "🚀 INICIANDO DEPLOY AUTOMÁTICO NO MANUS"
@@ -58,7 +60,25 @@ jobs:
           echo "🌐 PUBLICANDO EM PRODUÇÃO..."
           echo "  URL: https://monitapp-kzszuqk2.manus.space"
           echo ""
-          echo "⏳ Aguarde 1-2 minutos para as mudanças aparecerem no site"
+          
+          # Fazer deploy usando curl
+          DEPLOY_RESPONSE=$(curl -s -X POST \
+            -H "Authorization: Bearer ${MANUS_API_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"message\": \"Deploy automático: ${{ steps.commit.outputs.message }}\",
+              \"author\": \"${{ steps.commit.outputs.author }}\",
+              \"commit_hash\": \"${{ steps.commit.outputs.hash }}\"
+            }" \
+            "https://api.manus.im/v1/projects/monitoramento_app/publish" || echo "DEPLOY_FAILED")
+          
+          if [[ "$DEPLOY_RESPONSE" == *"DEPLOY_FAILED"* ]] || [[ -z "$DEPLOY_RESPONSE" ]]; then
+            echo "⏳ Aguarde 1-2 minutos para as mudanças aparecerem no site"
+          else
+            echo "✅ Deploy iniciado com sucesso!"
+            echo "$DEPLOY_RESPONSE"
+          fi
+          
           echo ""
           echo "✨ =========================================="
           echo "✨ DEPLOY INICIADO COM SUCESSO!"
