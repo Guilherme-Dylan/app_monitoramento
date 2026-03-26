@@ -2,6 +2,26 @@ import { describe, expect, it, beforeEach, vi } from "vitest";
 import { appRouter } from "./routers";
 import type { TrpcContext } from "./_core/context";
 
+vi.mock("./db", () => ({
+  createSearchRequest: vi.fn().mockResolvedValue({}),
+  getAllSearchRequests: vi.fn().mockResolvedValue([]),
+  getUserSearchRequests: vi.fn().mockResolvedValue([]),
+  updateSearchRequestStatus: vi.fn().mockResolvedValue(undefined),
+  createAnonymousReport: vi.fn().mockResolvedValue({}),
+  getAllAnonymousReports: vi.fn().mockResolvedValue([]),
+  updateAnonymousReportStatus: vi.fn().mockResolvedValue(undefined),
+  createVisitSchedule: vi.fn().mockResolvedValue({}),
+  getUserVisits: vi.fn().mockResolvedValue([]),
+  getAllVisits: vi.fn().mockResolvedValue([]),
+  updateVisitStatus: vi.fn().mockResolvedValue(undefined),
+  getVisitsByDateRange: vi.fn().mockResolvedValue([]),
+}));
+
+vi.mock("./auth-local", () => ({
+  validateCredentials: vi.fn().mockResolvedValue(null),
+  createUserWithPassword: vi.fn(),
+}));
+
 type AuthenticatedUser = NonNullable<TrpcContext["user"]>;
 
 function createMockContext(tipo_de_user: "user" | "admin" = "user"): TrpcContext {

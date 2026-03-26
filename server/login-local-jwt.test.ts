@@ -1,10 +1,51 @@
-import { describe, it, expect, beforeAll } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { appRouter } from "./routers";
 import { COOKIE_NAME } from "../shared/const";
 import type { TrpcContext } from "./_core/context";
 import * as db from "./db";
 import { sdk } from "./_core/sdk";
-import { createUserWithPassword, validateCredentials } from "./auth-local";
+
+vi.hoisted(() => {
+  process.env.JWT_SECRET = "test-jwt-secret";
+  process.env.VITE_APP_ID = "test-app-id";
+});
+
+const { mockUser } = vi.hoisted(() => ({
+  mockUser: {
+    id: 42,
+    email: "jwt-test@example.com",
+    nome: "JWT Test User",
+    tipo_de_user: "user" as const,
+  },
+}));
+
+vi.mock("./auth-local", () => ({
+  createUserWithPassword: vi.fn().mockResolvedValue({
+    email: mockUser.email,
+    nome: mockUser.nome,
+    tipo_de_user: mockUser.tipo_de_user,
+  }),
+  validateCredentials: vi.fn(async (email: string, password: string) => {
+    if (email === mockUser.email && password === "TestPassword123") {
+      return {
+        ...mockUser,
+        senha: "$2a$10$mock",
+      };
+    }
+    return null;
+  }),
+}));
+
+vi.mock("./db", () => ({
+  getUserByEmail: vi.fn(async (email: string) => {
+    if (email === mockUser.email) return mockUser;
+    return undefined;
+  }),
+  getUserById: vi.fn(async (id: number) => {
+    if (id === mockUser.id) return mockUser;
+    return undefined;
+  }),
+}));
 
 type CookieCall = {
   name: string;
@@ -33,29 +74,10 @@ function createPublicContext(): { ctx: TrpcContext; cookies: CookieCall[] } {
 }
 
 describe("auth.loginLocal - JWT com userId", () => {
-  let testUserId: number;
-  const testEmail = "jwt-test@example.com";
+  const testUserId = mockUser.id;
+  const testEmail = mockUser.email;
   const testPassword = "TestPassword123";
-  const testName = "JWT Test User";
-
-  beforeAll(async () => {
-    // Criar usuário de teste
-    try {
-      await createUserWithPassword(testEmail, testPassword, testName, "user");
-      
-      // Obter ID do usuário criado
-      const user = await db.getUserByEmail(testEmail);
-      if (user) {
-        testUserId = user.id;
-      }
-    } catch (error) {
-      // Usuário pode já existir de testes anteriores
-      const user = await db.getUserByEmail(testEmail);
-      if (user) {
-        testUserId = user.id;
-      }
-    }
-  });
+  const testName = mockUser.nome;
 
   it("should create JWT with userId for local authentication", async () => {
     const { ctx, cookies } = createPublicContext();
@@ -66,18 +88,15 @@ describe("auth.loginLocal - JWT com userId", () => {
       password: testPassword,
     });
 
-    // Verificar que login foi bem-sucedido
     expect(result.success).toBe(true);
     expect(result.user).toBeDefined();
     expect(result.user.email).toBe(testEmail);
     expect(result.user.nome).toBe(testName);
 
-    // Verificar que cookie foi definido
     expect(cookies.length).toBeGreaterThan(0);
     const sessionCookie = cookies.find((c) => c.name === COOKIE_NAME);
     expect(sessionCookie).toBeDefined();
 
-    // Verificar que JWT contém userId
     if (sessionCookie) {
       const verifiedSession = await sdk.verifySession(sessionCookie.value);
       expect(verifiedSession).toBeDefined();
@@ -134,11 +153,8 @@ describe("auth.loginLocal - JWT com userId", () => {
     if (sessionCookie) {
       const verifiedSession = await sdk.verifySession(sessionCookie.value);
       const userId = parseInt(verifiedSession?.userId || "0", 10);
-      
-      // Verificar que userId no JWT corresponde ao ID do usuário
       expect(userId).toBe(testUserId);
-      
-      // Verificar que conseguimos buscar o usuário pelo ID
+
       const user = await db.getUserById(userId);
       expect(user).toBeDefined();
       expect(user?.email).toBe(testEmail);

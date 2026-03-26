@@ -3,6 +3,11 @@ import { appRouter } from "./routers";
 import { COOKIE_NAME } from "../shared/const";
 import type { TrpcContext } from "./_core/context";
 
+vi.mock("./auth-local", () => ({
+  validateCredentials: vi.fn().mockResolvedValue(null),
+  createUserWithPassword: vi.fn(),
+}));
+
 type CookieCall = {
   name: string;
   value: string;

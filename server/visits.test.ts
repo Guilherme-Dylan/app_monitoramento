@@ -1,97 +1,159 @@
-import { describe, it, expect, beforeAll } from "vitest";
-import { createVisitSchedule, getUserVisits, updateVisitStatus, getAllVisits } from "./db";
+import { describe, it, expect, vi } from "vitest";
+import { appRouter } from "./routers";
+import type { TrpcContext } from "./_core/context";
+
+const visitStore = [
+  {
+    id: 1,
+    userId: 1,
+    requestId: 1,
+    scheduledDate: new Date("2026-04-15T10:00:00"),
+    reason: "Inspecao de seguranca",
+    status: "pending" as const,
+    adminNotes: null as string | null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    userName: "Admin",
+    userEmail: "admin@example.com",
+  },
+];
+
+vi.mock("./db", () => ({
+  createSearchRequest: vi.fn(),
+  getAllSearchRequests: vi.fn(async () => []),
+  getUserSearchRequests: vi.fn(async () => []),
+  updateSearchRequestStatus: vi.fn(),
+  createAnonymousReport: vi.fn(),
+  getAllAnonymousReports: vi.fn(async () => []),
+  updateAnonymousReportStatus: vi.fn(),
+  createVisitSchedule: vi.fn(async (visit: any) => {
+    const id = visitStore.length + 1;
+    visitStore.push({
+      id,
+      userId: visit.userId,
+      requestId: visit.requestId,
+      scheduledDate: visit.scheduledDate,
+      reason: visit.reason ?? null,
+      status: visit.status,
+      adminNotes: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      userName: "Admin",
+      userEmail: "admin@example.com",
+    });
+    return { insertId: id };
+  }),
+  getUserVisits: vi.fn(async (userId: number) => visitStore.filter((v) => v.userId === userId)),
+  getAllVisits: vi.fn(async () => visitStore),
+  updateVisitStatus: vi.fn(async (visitId: number, status: "pending" | "approved" | "rejected" | "completed", adminNotes?: string) => {
+    const visit = visitStore.find((v) => v.id === visitId);
+    if (visit) {
+      visit.status = status;
+      visit.adminNotes = adminNotes ?? null;
+    }
+  }),
+  getVisitsByDateRange: vi.fn(async () => visitStore),
+}));
+
+function createContext(tipo_de_user: "user" | "admin"): TrpcContext {
+  return {
+    user: {
+      id: 1,
+      openId: "mock-openid",
+      email: "admin@example.com",
+      nome: "Admin",
+      loginMethod: "email",
+      tipo_de_user,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      lastSignedIn: new Date(),
+    },
+    req: {
+      protocol: "https",
+      headers: {},
+    } as TrpcContext["req"],
+    res: {
+      clearCookie: vi.fn(),
+      cookie: vi.fn(),
+    } as unknown as TrpcContext["res"],
+  };
+}
 
 describe("Visit Scheduling", () => {
-  let testUserId: number;
-  let testVisitId: number;
-
-  beforeAll(async () => {
-    // Usar um usuário de teste existente
-    testUserId = 1; // admin@anml.com tem ID 1
-
-    // Criar uma visita antes de rodar os testes
-    const result = await createVisitSchedule({
-      userId: testUserId,
-      requestId: 1,
-      scheduledDate: new Date("2026-04-15T10:00:00"),
-      reason: "Inspeção de segurança",
-      status: "pending",
+  it("should create a visit schedule", async () => {
+    const caller = appRouter.createCaller(createContext("user"));
+    const result = await caller.visits.create({
+      requestId: 2,
+      scheduledDate: new Date("2026-05-01T14:00:00"),
+      reason: "Visita de validacao",
     });
 
-    expect(result).toBeDefined();
-
-    // Buscar as visitas para pegar o ID da que acabamos de criar
-    const visits = await getUserVisits(testUserId);
-    expect(visits.length).toBeGreaterThan(0);
-
-    testVisitId = visits[visits.length - 1].id;
-    expect(testVisitId).toBeGreaterThan(0);
-  });
-
-  it("should create a visit schedule", async () => {
-    // Só verificamos que o testVisitId foi criado no beforeAll
-    expect(testVisitId).toBeDefined();
+    expect(result).toEqual({ success: true });
+    expect(visitStore.length).toBeGreaterThan(1);
   });
 
   it("should get user visits", async () => {
-    const visits = await getUserVisits(testUserId);
+    const caller = appRouter.createCaller(createContext("user"));
+    const visits = await caller.visits.getUserVisits();
+
     expect(Array.isArray(visits)).toBe(true);
-    if (visits.length > 0) {
-      expect(visits[0].userId).toBe(testUserId);
-    }
+    expect(visits.length).toBeGreaterThan(0);
+    expect(visits[0]?.userId).toBe(1);
   });
 
   it("should update visit status", async () => {
-    // Garantir que o ID exista (redundante, mas seguro)
-    expect(testVisitId).toBeDefined();
-    expect(testVisitId).toBeGreaterThan(0);
+    const caller = appRouter.createCaller(createContext("admin"));
+    const result = await caller.visits.updateStatus({
+      visitId: 1,
+      status: "approved",
+      adminNotes: "Visita aprovada pela administracao",
+    });
 
-    await updateVisitStatus(testVisitId, "approved", "Visita aprovada pela administração");
-
-    const visits = await getUserVisits(testUserId);
-    const updatedVisit = visits.find(v => v.id === testVisitId);
-
-    expect(updatedVisit?.status).toBe("approved");
-    expect(updatedVisit?.adminNotes).toBe("Visita aprovada pela administração");
+    expect(result).toEqual({ success: true });
+    expect(visitStore[0]?.status).toBe("approved");
+    expect(visitStore[0]?.adminNotes).toBe("Visita aprovada pela administracao");
   });
 
   it("should get all visits", async () => {
-    const allVisits = await getAllVisits();
+    const caller = appRouter.createCaller(createContext("admin"));
+    const allVisits = await caller.visits.getAll();
+
     expect(Array.isArray(allVisits)).toBe(true);
+    expect(allVisits.length).toBeGreaterThan(0);
   });
 
   it("should return visit with user information", async () => {
-    const allVisits = await getAllVisits();
-    if (allVisits.length > 0) {
-      const visit = allVisits[0];
-      expect(visit).toHaveProperty("userName");
-      expect(visit).toHaveProperty("userEmail");
-    }
+    const caller = appRouter.createCaller(createContext("admin"));
+    const allVisits = await caller.visits.getAll();
+    const visit = allVisits[0];
+
+    expect(visit).toHaveProperty("userName");
+    expect(visit).toHaveProperty("userEmail");
   });
 
   it("should include all required fields in visit response", async () => {
-    const allVisits = await getAllVisits();
-    if (allVisits.length > 0) {
-      const visit = allVisits[0];
-      expect(visit).toHaveProperty("id");
-      expect(visit).toHaveProperty("userId");
-      expect(visit).toHaveProperty("requestId");
-      expect(visit).toHaveProperty("scheduledDate");
-      expect(visit).toHaveProperty("reason");
-      expect(visit).toHaveProperty("status");
-      expect(visit).toHaveProperty("adminNotes");
-      expect(visit).toHaveProperty("createdAt");
-      expect(visit).toHaveProperty("updatedAt");
-      expect(visit).toHaveProperty("userName");
-      expect(visit).toHaveProperty("userEmail");
-    }
+    const caller = appRouter.createCaller(createContext("admin"));
+    const allVisits = await caller.visits.getAll();
+    const visit = allVisits[0];
+
+    expect(visit).toHaveProperty("id");
+    expect(visit).toHaveProperty("userId");
+    expect(visit).toHaveProperty("requestId");
+    expect(visit).toHaveProperty("scheduledDate");
+    expect(visit).toHaveProperty("reason");
+    expect(visit).toHaveProperty("status");
+    expect(visit).toHaveProperty("adminNotes");
+    expect(visit).toHaveProperty("createdAt");
+    expect(visit).toHaveProperty("updatedAt");
+    expect(visit).toHaveProperty("userName");
+    expect(visit).toHaveProperty("userEmail");
   });
 
   it("should have correct visit properties", async () => {
-    const visits = await getUserVisits(testUserId);
-    expect(visits.length).toBeGreaterThan(0);
-
+    const caller = appRouter.createCaller(createContext("user"));
+    const visits = await caller.visits.getUserVisits();
     const visit = visits[0];
+
     expect(visit).toHaveProperty("id");
     expect(visit).toHaveProperty("userId");
     expect(visit).toHaveProperty("requestId");
