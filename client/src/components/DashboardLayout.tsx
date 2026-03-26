@@ -28,8 +28,8 @@ import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
 import { Button } from "./ui/button";
 
 const menuItems = [
-  { icon: LayoutDashboard, label: "Page 1", path: "/" },
-  { icon: Users, label: "Page 2", path: "/some-path" },
+  { icon: LayoutDashboard, label: "Painel", path: "/" },
+  { icon: Users, label: "Usuários", path: "/some-path" },
 ];
 
 const SIDEBAR_WIDTH_KEY = "sidebar-width";
@@ -62,10 +62,10 @@ export default function DashboardLayout({
         <div className="flex flex-col items-center gap-8 p-8 max-w-md w-full">
           <div className="flex flex-col items-center gap-6">
             <h1 className="text-2xl font-semibold tracking-tight text-center">
-              Sign in to continue
+              Faça login para continuar
             </h1>
             <p className="text-sm text-muted-foreground text-center max-w-sm">
-              Access to this dashboard requires authentication. Continue to launch the login flow.
+              O acesso a este painel exige autenticação.
             </p>
           </div>
           <Button
@@ -75,7 +75,7 @@ export default function DashboardLayout({
             size="lg"
             className="w-full shadow-lg hover:shadow-xl transition-all"
           >
-            Sign in
+            Entrar
           </Button>
         </div>
       </div>
@@ -164,14 +164,14 @@ function DashboardLayoutContent({
               <button
                 onClick={toggleSidebar}
                 className="h-8 w-8 flex items-center justify-center hover:bg-accent rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring shrink-0"
-                aria-label="Toggle navigation"
+                aria-label="Alternar navegação"
               >
                 <PanelLeft className="h-4 w-4 text-muted-foreground" />
               </button>
               {!isCollapsed ? (
                 <div className="flex items-center gap-2 min-w-0">
                   <span className="font-semibold tracking-tight truncate">
-                    Navigation
+                    Navegação
                   </span>
                 </div>
               ) : null}
@@ -226,7 +226,7 @@ function DashboardLayoutContent({
                   className="cursor-pointer text-destructive focus:text-destructive"
                 >
                   <LogOut className="mr-2 h-4 w-4" />
-                  <span>Sign out</span>
+                  <span>Sair</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
