@@ -6,7 +6,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { trpc } from "@/lib/trpc";
 import { useState } from "react";
 import { toast } from "sonner";
-import { AlertCircle, Lock } from "lucide-react";
+import { AlertCircle, ArrowLeft, Lock } from "lucide-react";
+import { Link } from "wouter";
 
 export default function AnonymousReport() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -148,6 +149,15 @@ export default function AnonymousReport() {
               >
                 {isSubmitting || createMutation.isPending ? "Enviando..." : "Enviar Denúncia"}
               </Button>
+
+              <div className="flex justify-center">
+                <Button asChild variant="outline" className="rounded-xl">
+                  <Link href="/" className="inline-flex items-center gap-2">
+                    <ArrowLeft className="w-4 h-4" />
+                    Voltar ao menu
+                  </Link>
+                </Button>
+              </div>
             </form>
           </CardContent>
         </Card>

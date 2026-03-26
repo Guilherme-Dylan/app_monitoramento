@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
-import { Shield, Mail, Lock, AlertCircle } from "lucide-react";
+import { Shield, Mail, Lock, ArrowLeft } from "lucide-react";
+import { Link } from "wouter";
 
 export default function Login() {
   const [, setLocation] = useLocation();
@@ -14,51 +15,55 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const loginMutation = trpc.auth.loginLocal.useMutation({
-    onSuccess: async () => {
-      toast.success("Login realizado com sucesso!");
-      
-      // Aguardar um pouco para garantir que o cookie foi salvo
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Redirecionar para home usando window.location para garantir recarregamento
-      window.location.href = "/";
-    },
-    onError: (error) => {
-      toast.error(error.message || "Erro ao fazer login");
-    },
-  });
+  const utils = trpc.useUtils();
+  const loginMutation = trpc.auth.loginLocal.useMutation();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!email || !password) {
-      toast.error("Preencha todos os campos");
-      return;
-    }
-
     setIsLoading(true);
+
     try {
-      await loginMutation.mutateAsync({ email, password });
+      console.log("[Login] Iniciando login para:", email);
+      const result = await loginMutation.mutateAsync({ email, password });
+      
+      console.log("[Login] Resultado:", result);
+      
+      if (result.success) {
+        console.log("[Login] Login bem-sucedido, atualizando cache");
+        // Atualizar cache com dados do usuário
+        utils.auth.me.setData(undefined, result.user as any);
+        
+        toast.success("Login realizado com sucesso!");
+        
+        console.log("[Login] Aguardando 1 segundo antes de redirecionar");
+        // Aguardar 1 segundo para garantir que o cookie foi salvo
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        console.log("[Login] Redirecionando para /");
+        setLocation("/");
+      }
+    } catch (error) {
+      console.error("[Login] Erro:", error);
+      toast.error(error instanceof Error ? error.message : "Erro ao fazer login");
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white flex items-center justify-center px-4">
+    <div className="theme-page min-h-screen flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-4">
             <Shield className="w-8 h-8 text-blue-600" />
-            <h1 className="text-3xl font-bold text-slate-900">Monitoramento</h1>
+            <h1 className="text-3xl font-extrabold text-[var(--brand-blue-deep)]">Monitoramento</h1>
           </div>
-          <p className="text-slate-600">Sistema de Monitoramento Empresarial</p>
+          <p className="text-[var(--text-main)]">Sistema de Monitoramento Empresarial</p>
         </div>
 
         {/* Login Card */}
-        <Card className="border-slate-200 shadow-lg">
+        <Card className="theme-surface-card">
           <CardHeader>
             <CardTitle>Fazer Login</CardTitle>
             <CardDescription>
@@ -79,7 +84,6 @@ export default function Login() {
                     onChange={(e) => setEmail(e.target.value)}
                     className="pl-10"
                     required
-                    disabled={isLoading || loginMutation.isPending}
                   />
                 </div>
               </div>
@@ -96,27 +100,34 @@ export default function Login() {
                     onChange={(e) => setPassword(e.target.value)}
                     className="pl-10"
                     required
-                    disabled={isLoading || loginMutation.isPending}
                   />
                 </div>
               </div>
 
               <Button
                 type="submit"
-                disabled={isLoading || loginMutation.isPending}
-                className="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium"
+                disabled={isLoading}
+                className="btn-premium btn-premium-blue w-full font-medium"
               >
-                {isLoading || loginMutation.isPending ? "Fazendo login..." : "Entrar"}
+                {isLoading ? "Fazendo login..." : "Entrar"}
               </Button>
             </form>
 
             {/* Info Message */}
-            <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg flex gap-3">
-              <AlertCircle className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
-              <div className="text-sm text-blue-800">
-                <p className="font-medium mb-1">Informação Importante:</p>
-                <p>Cada dispositivo precisa fazer login separadamente. A sessão é mantida através de cookies seguros.</p>
-              </div>
+            <div className="mt-6 p-4 bg-[var(--surface-blue-soft)] border border-[var(--brand-blue-soft)] rounded-xl">
+              <p className="text-sm text-[var(--text-main)]">
+                <strong>Nota:</strong> Apenas administradores podem criar novas contas. 
+                Solicite ao administrador do sistema para criar sua conta.
+              </p>
+            </div>
+
+            <div className="mt-5 flex justify-center">
+              <Button asChild variant="outline" className="rounded-xl">
+                <Link href="/" className="inline-flex items-center gap-2">
+                  <ArrowLeft className="w-4 h-4" />
+                  Voltar ao menu
+                </Link>
+              </Button>
             </div>
           </CardContent>
         </Card>
