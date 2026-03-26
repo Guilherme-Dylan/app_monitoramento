@@ -104,7 +104,7 @@ export default function Login() {
               <Button
                 type="submit"
                 disabled={isLoading || loginMutation.isPending}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium"
+                className="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium"
               >
                 {isLoading || loginMutation.isPending ? "Fazendo login..." : "Entrar"}
               </Button>
