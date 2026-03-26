@@ -1,4 +1,4 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, datetime } from "drizzle-orm/mysql-core";
+import { int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -63,13 +63,13 @@ export type AnonymousReport = typeof anonymousReports.$inferSelect;
 export type InsertAnonymousReport = typeof anonymousReports.$inferInsert;
 
 /**
- * Agendamentos de visitas para solicitações de busca
+ * Agendamentos de visitas vinculados a solicitações
  */
 export const visitSchedules = mysqlTable("visit_schedules", {
   id: int("id").autoincrement().primaryKey(),
-  userId: int("userId").notNull().references(() => users.id),
-  requestId: int("requestId").notNull().references(() => searchRequests.id),
-  scheduledDate: datetime("scheduledDate").notNull(),
+  userId: int("userId").notNull(),
+  requestId: int("requestId").notNull(),
+  scheduledDate: timestamp("scheduledDate").notNull(),
   reason: text("reason"),
   status: mysqlEnum("status", ["pending", "approved", "rejected", "completed"]).default("pending").notNull(),
   adminNotes: text("adminNotes"),

@@ -27,14 +27,13 @@ export function VisitScheduleForm({ requestId, onSuccess }: VisitScheduleFormPro
       setReason("");
       onSuccess?.();
     },
-    onError: (error) => {
+    onError: error => {
       toast.error(error.message || "Erro ao agendar visita");
     },
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (!date) {
       toast.error("Selecione uma data");
       return;
@@ -57,71 +56,68 @@ export function VisitScheduleForm({ requestId, onSuccess }: VisitScheduleFormPro
   };
 
   return (
-    <Card className="w-full">
+    <Card className="theme-surface-card bg-white/95">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Calendar className="w-5 h-5" />
-          Agendar Visita
+          <Calendar className="w-5 h-5 text-[var(--brand-blue)]" />
+          Agendar visita
         </CardTitle>
         <CardDescription>
-          Escolha a data e hora para a visita de monitoramento
+          Escolha a data e hora para a visita de monitoramento.
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Data */}
           <div className="space-y-2">
-            <Label htmlFor="date">Data da Visita</Label>
+            <Label htmlFor={`visit-date-${requestId}`}>Data da visita</Label>
             <Input
-              id="date"
+              id={`visit-date-${requestId}`}
               type="date"
               value={date}
-              onChange={(e) => setDate(e.target.value)}
+              onChange={e => setDate(e.target.value)}
               required
               className="w-full"
             />
           </div>
 
-          {/* Hora */}
           <div className="space-y-2">
-            <Label htmlFor="time" className="flex items-center gap-2">
+            <Label htmlFor={`visit-time-${requestId}`} className="flex items-center gap-2">
               <Clock className="w-4 h-4" />
               Horário
             </Label>
             <Input
-              id="time"
+              id={`visit-time-${requestId}`}
               type="time"
               value={time}
-              onChange={(e) => setTime(e.target.value)}
+              onChange={e => setTime(e.target.value)}
               className="w-full"
             />
           </div>
 
-          {/* Motivo */}
           <div className="space-y-2">
-            <Label htmlFor="reason" className="flex items-center gap-2">
+            <Label htmlFor={`visit-reason-${requestId}`} className="flex items-center gap-2">
               <FileText className="w-4 h-4" />
-              Motivo da Visita (Opcional)
+              Motivo da visita (opcional)
             </Label>
             <Textarea
-              id="reason"
+              id={`visit-reason-${requestId}`}
               placeholder="Descreva o motivo ou objetivo da visita..."
               value={reason}
-              onChange={(e) => setReason(e.target.value)}
+              onChange={e => setReason(e.target.value)}
               className="w-full min-h-24 resize-none"
             />
           </div>
 
-          {/* Botão de Envio */}
           <Button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium"
+            className="btn-premium btn-premium-blue w-full"
           >
-            {isLoading ? "Agendando..." : "Agendar Visita"}
+            {isLoading ? "Agendando..." : "Agendar visita"}
           </Button>
         </form>
       </CardContent>
     </Card>
   );
 }
+

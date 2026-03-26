@@ -105,7 +105,7 @@ export default function ReportPage() {
             </Card>
             <div className="mt-6 flex justify-center">
               <Button asChild variant="outline" className="rounded-xl">
-                <Link href="/" className="inline-flex items-center gap-2">
+                <Link href="/menu" className="inline-flex items-center gap-2">
                   <ArrowLeft className="w-4 h-4" />
                   Voltar ao menu
                 </Link>
@@ -196,7 +196,7 @@ export default function ReportPage() {
 
           <div className="mt-8 flex justify-center">
             <Button asChild variant="outline" className="rounded-xl">
-              <Link href="/" className="inline-flex items-center gap-2">
+              <Link href="/menu" className="inline-flex items-center gap-2">
                 <ArrowLeft className="w-4 h-4" />
                 Voltar ao menu
               </Link>

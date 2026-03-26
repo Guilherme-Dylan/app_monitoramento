@@ -1,5 +1,4 @@
-import { eq, and, gte, lte } from "drizzle-orm";
-import { sql } from "drizzle-orm";
+import { and, eq, gte, lte } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { InsertUser, users, InsertSearchRequest, searchRequests, InsertAnonymousReport, anonymousReports, InsertVisitSchedule, visitSchedules } from "../drizzle/schema";
 import { ENV } from './_core/env';

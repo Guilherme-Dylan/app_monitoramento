@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import { LogIn, LogOut, Shield } from "lucide-react";
+import { LayoutGrid, LogOut, Shield } from "lucide-react";
 
 type AppHeaderProps = {
   isAuthenticated: boolean;
@@ -12,7 +12,7 @@ export function AppHeader({ isAuthenticated, userName, onLogout }: AppHeaderProp
   return (
     <header className="theme-header">
       <div className="theme-container flex items-center justify-between py-4">
-        <Link href="/" className="flex items-center gap-3">
+        <Link href="/menu" className="flex items-center gap-3">
           <Shield className="h-8 w-8 text-[var(--brand-blue)]" />
           <span className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[var(--brand-blue-deep)]">
             Monitoramento
@@ -32,9 +32,9 @@ export function AppHeader({ isAuthenticated, userName, onLogout }: AppHeaderProp
           </div>
         ) : (
           <Button asChild className="btn-premium btn-premium-blue h-11 px-6 text-base">
-            <Link href="/login" className="inline-flex items-center gap-2">
-              <LogIn className="h-5 w-5" />
-              Entrar
+            <Link href="/menu" className="inline-flex items-center gap-2">
+              <LayoutGrid className="h-5 w-5" />
+              Menu
             </Link>
           </Button>
         )}

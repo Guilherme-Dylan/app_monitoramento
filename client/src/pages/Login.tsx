@@ -124,7 +124,7 @@ export default function Login() {
 
               <div className="mt-5 flex justify-center">
                 <Button asChild variant="outline" className="rounded-xl">
-                  <Link href="/" className="inline-flex items-center gap-2">
+                  <Link href="/menu" className="inline-flex items-center gap-2">
                     <ArrowLeft className="w-4 h-4" />
                     Voltar ao menu
                   </Link>
