@@ -1,9 +1,9 @@
+import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router, protectedProcedure } from "./_core/trpc";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { COOKIE_NAME } from "../shared/const";
-import { getSessionCookieOptions } from "./_core/cookies";
 import {
   createSearchRequest,
   getAllSearchRequests,
@@ -159,8 +159,6 @@ export const appRouter = router({
         })
       )
       .mutation(async ({ ctx, input }) => {
-        if (!ctx.user) throw new TRPCError({ code: "UNAUTHORIZED" });
-        
         await createVisitSchedule({
           userId: ctx.user.id,
           requestId: input.requestId,
@@ -171,15 +169,13 @@ export const appRouter = router({
         return { success: true };
       }),
 
-    getUserVisits: protectedProcedure
-      .query(async ({ ctx }) => {
-        if (!ctx.user) throw new TRPCError({ code: "UNAUTHORIZED" });
-        return await getUserVisits(ctx.user.id);
-      }),
+    getUserVisits: protectedProcedure.query(async ({ ctx }) => {
+      return await getUserVisits(ctx.user.id);
+    }),
 
     getAll: protectedProcedure
       .use(async ({ ctx, next }) => {
-        if (ctx.user?.tipo_de_user !== "admin") {
+        if (ctx.user.tipo_de_user !== "admin") {
           throw new TRPCError({ code: "FORBIDDEN" });
         }
         return next({ ctx });
@@ -190,7 +186,7 @@ export const appRouter = router({
 
     updateStatus: protectedProcedure
       .use(async ({ ctx, next }) => {
-        if (ctx.user?.tipo_de_user !== "admin") {
+        if (ctx.user.tipo_de_user !== "admin") {
           throw new TRPCError({ code: "FORBIDDEN" });
         }
         return next({ ctx });

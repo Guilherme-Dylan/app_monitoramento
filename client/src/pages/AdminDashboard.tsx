@@ -7,7 +7,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useState } from "react";
 import { toast } from "sonner";
-import { CheckCircle, XCircle, Clock, Eye, Home, ArrowLeft } from "lucide-react";
+import { CheckCircle, XCircle, Clock, Eye, Home, ArrowLeft, CalendarClock } from "lucide-react";
 import { Link } from "wouter";
 
 export default function AdminDashboard() {
@@ -15,7 +15,7 @@ export default function AdminDashboard() {
     redirectOnUnauthenticated: true,
     redirectPath: "/login",
   });
-  const [activeTab, setActiveTab] = useState<"requests" | "reports">("requests");
+  const [activeTab, setActiveTab] = useState<"requests" | "reports" | "visits">("requests");
 
   const { data: requests, isLoading: requestsLoading, refetch: refetchRequests } =
     trpc.searchRequests.getAllRequests.useQuery(undefined, {
@@ -26,6 +26,13 @@ export default function AdminDashboard() {
     });
   const { data: reports, isLoading: reportsLoading, refetch: refetchReports } =
     trpc.anonymousReports.getAllReports.useQuery(undefined, {
+      enabled: user?.tipo_de_user === "admin",
+      refetchInterval: 5000,
+      refetchOnWindowFocus: true,
+      refetchOnReconnect: true,
+    });
+  const { data: visits, isLoading: visitsLoading, refetch: refetchVisits } =
+    trpc.visits.getAll.useQuery(undefined, {
       enabled: user?.tipo_de_user === "admin",
       refetchInterval: 5000,
       refetchOnWindowFocus: true,
@@ -49,6 +56,15 @@ export default function AdminDashboard() {
     },
     onError: error => {
       toast.error(error.message || "Erro ao atualizar status");
+    },
+  });
+  const updateVisitStatusMutation = trpc.visits.updateStatus.useMutation({
+    onSuccess: () => {
+      toast.success("Status da visita atualizado com sucesso!");
+      refetchVisits();
+    },
+    onError: error => {
+      toast.error(error.message || "Erro ao atualizar visita");
     },
   });
 
@@ -101,6 +117,40 @@ export default function AdminDashboard() {
     }
   };
 
+  const getVisitStatusBadge = (status: string) => {
+    switch (status) {
+      case "approved":
+        return (
+          <div className="status-pill status-pill-approved">
+            <CheckCircle className="w-4 h-4" />
+            Aprovada
+          </div>
+        );
+      case "rejected":
+        return (
+          <div className="status-pill status-pill-rejected">
+            <XCircle className="w-4 h-4" />
+            Rejeitada
+          </div>
+        );
+      case "completed":
+        return (
+          <div className="status-pill status-pill-resolved">
+            <CheckCircle className="w-4 h-4" />
+            Concluída
+          </div>
+        );
+      case "pending":
+      default:
+        return (
+          <div className="status-pill status-pill-pending">
+            <Clock className="w-4 h-4" />
+            Pendente
+          </div>
+        );
+    }
+  };
+
   if (loading) {
     return (
       <div className="theme-page min-h-screen">
@@ -127,7 +177,7 @@ export default function AdminDashboard() {
             </Card>
             <div className="mt-6 flex justify-center">
               <Button asChild variant="outline" className="rounded-xl">
-                <Link href="/" className="inline-flex items-center gap-2">
+                <Link href="/menu" className="inline-flex items-center gap-2">
                   <ArrowLeft className="w-4 h-4" />
                   Voltar ao menu
                 </Link>
@@ -170,6 +220,16 @@ export default function AdminDashboard() {
               }`}
             >
               Denúncias anônimas ({reports?.length || 0})
+            </button>
+            <button
+              onClick={() => setActiveTab("visits")}
+              className={`px-4 py-2 font-medium border-b-2 transition-colors ${
+                activeTab === "visits"
+                  ? "border-[var(--brand-blue)] text-[var(--brand-blue)]"
+                  : "border-transparent text-[var(--text-soft)] hover:text-[var(--brand-blue-deep)]"
+              }`}
+            >
+              Visitas agendadas ({visits?.length || 0})
             </button>
           </div>
 
@@ -321,9 +381,88 @@ export default function AdminDashboard() {
             </div>
           )}
 
+          {activeTab === "visits" && (
+            <div>
+              {visitsLoading ? (
+                <div className="flex justify-center items-center py-12">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                </div>
+              ) : visits && visits.length > 0 ? (
+                <div className="space-y-4">
+                  {visits.map(visit => (
+                    <Card key={visit.id} className="theme-surface-card bg-white/95">
+                      <CardContent className="pt-6">
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                          <div>
+                            <p className="text-xs text-slate-500 uppercase font-semibold">Usuário</p>
+                            <p className="text-sm font-medium text-[var(--brand-blue-deep)]">{visit.userName || "Sem nome"}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-slate-500 uppercase font-semibold">Solicitação</p>
+                            <p className="text-sm text-slate-700">#{visit.requestId}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-slate-500 uppercase font-semibold">Data/Hora</p>
+                            <p className="text-sm text-slate-700">
+                              {format(new Date(visit.scheduledDate), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-slate-500 uppercase font-semibold">Status</p>
+                            {getVisitStatusBadge(visit.status)}
+                          </div>
+                        </div>
+                        <div className="mb-4">
+                          <p className="text-xs text-slate-500 uppercase font-semibold mb-2">Motivo</p>
+                          <p className="text-sm text-slate-700 bg-slate-50 p-3 rounded-xl">{visit.reason || "Não informado"}</p>
+                        </div>
+                        <div className="flex gap-2 flex-wrap">
+                          <Button
+                            size="sm"
+                            onClick={() => updateVisitStatusMutation.mutate({ visitId: visit.id, status: "approved" })}
+                            disabled={updateVisitStatusMutation.isPending}
+                            className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                          >
+                            Aprovar
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={() => updateVisitStatusMutation.mutate({ visitId: visit.id, status: "rejected" })}
+                            disabled={updateVisitStatusMutation.isPending}
+                            className="bg-red-600 hover:bg-red-700 text-white"
+                          >
+                            Rejeitar
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={() => updateVisitStatusMutation.mutate({ visitId: visit.id, status: "completed" })}
+                            disabled={updateVisitStatusMutation.isPending}
+                            className="btn-premium btn-premium-blue text-white"
+                          >
+                            Concluir
+                          </Button>
+                        </div>
+                        {visit.adminNotes ? (
+                          <p className="text-xs text-slate-500 mt-3">Observação: {visit.adminNotes}</p>
+                        ) : null}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              ) : (
+                <Card className="theme-surface-card">
+                  <CardContent className="pt-12 pb-12 text-center">
+                    <CalendarClock className="h-10 w-10 mx-auto text-slate-400 mb-3" />
+                    <p className="text-slate-600">Nenhuma visita agendada</p>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          )}
+
           <div className="mt-8 flex justify-center gap-3 flex-wrap">
             <Button asChild variant="outline" className="rounded-xl">
-              <Link href="/" className="inline-flex items-center gap-2">
+              <Link href="/menu" className="inline-flex items-center gap-2">
                 <Home className="w-4 h-4" />
                 Voltar ao menu
               </Link>

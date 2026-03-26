@@ -16,7 +16,8 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={Home} />
+      <Route path="/" component={AnonymousReport} />
+      <Route path="/menu" component={Home} />
       <Route path="/login" component={Login} />
       <Route path="/search-request" component={SearchRequest} />
       <Route path="/anonymous-report" component={AnonymousReport} />

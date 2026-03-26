@@ -8,7 +8,7 @@ export default function NotFound() {
   const [, setLocation] = useLocation();
 
   const handleGoHome = () => {
-    setLocation("/");
+    setLocation("/menu");
   };
 
   return (
