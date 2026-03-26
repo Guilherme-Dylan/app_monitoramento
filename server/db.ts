@@ -4,10 +4,29 @@ import { drizzle } from "drizzle-orm/mysql2";
 import { InsertUser, users, InsertSearchRequest, searchRequests, InsertAnonymousReport, anonymousReports, InsertVisitSchedule, visitSchedules } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
+mockDb.users.push({
+  id: 1,
+  email: "test@test.com",
+  password: "123456",
+});
+
+const mockDb = {
+  users: [],
+  searchRequests: [],
+  anonymousReports: [],
+  visitSchedules: [],
+};
+
+let idCounter = 1;
+
 let _db: ReturnType<typeof drizzle> | null = null;
 
 // Lazily create the drizzle instance so local tooling can run without a DB.
 export async function getDb() {
+  if (process.env.NODE_ENV === "test") {
+    return "mock";
+  }
+
   if (!_db && process.env.DATABASE_URL) {
     try {
       _db = drizzle(process.env.DATABASE_URL);
@@ -16,7 +35,47 @@ export async function getDb() {
       _db = null;
     }
   }
+
   return _db;
+}
+export async function createSearchRequest(request: InsertSearchRequest) {
+  const db = await getDb();
+
+  if (db === "mock") {
+    const newItem = { id: idCounter++, ...request };
+    mockDb.searchRequests.push(newItem);
+    return newItem;
+  }
+
+  if (!db) throw new Error("Database not available");
+
+  return await db.insert(searchRequests).values(request);
+}
+
+export async function getAllSearchRequests() {
+  const db = await getDb();
+
+  if (db === "mock") {
+    return mockDb.searchRequests;
+  }
+
+  if (!db) return [];
+
+  return await db.select().from(searchRequests);
+}
+
+export async function updateSearchRequestStatus(id: number, status: any) {
+  const db = await getDb();
+
+  if (db === "mock") {
+    const item = mockDb.searchRequests.find(r => r.id === id);
+    if (item) item.status = status;
+    return;
+  }
+
+  if (!db) throw new Error("Database not available");
+
+  await db.update(searchRequests).set({ status }).where(eq(searchRequests.id, id));
 }
 
 export async function upsertUser(user: InsertUser): Promise<void> {
