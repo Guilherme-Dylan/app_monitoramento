@@ -46,7 +46,7 @@ export default function Home() {
                 </Button>
               </>
             ) : (
-              <Button asChild className="bg-yellow-500 hover:bg-yellow-600 text-slate-900">
+              <Button asChild className="bg-purple-600 hover:bg-purple-700 text-white">
                 <Link href="/login">Entrar</Link>
               </Button>
             )}
