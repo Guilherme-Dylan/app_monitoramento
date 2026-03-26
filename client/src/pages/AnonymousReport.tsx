@@ -108,7 +108,7 @@ export default function AnonymousReport() {
                     name="category"
                     value={formData.category}
                     onChange={handleChange}
-                    className="mt-2 w-full px-3 py-2 border border-slate-300 rounded-md bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="mt-2 w-full h-11 px-3 py-2 border border-[color:var(--brand-blue-soft)] rounded-xl bg-white text-slate-900 shadow-[0_4px_12px_rgba(0,0,0,0.05)] focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="">Selecione uma categoria</option>
                     <option value="Assédio">Assédio</option>
