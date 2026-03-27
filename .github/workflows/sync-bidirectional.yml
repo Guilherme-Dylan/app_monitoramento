@@ -3,7 +3,7 @@ name: Sincronização Bidirecional com Manus
 on:
   schedule:
     # Sincronizar a cada 5 minutos
-    - cron: '*/5 * * * *'
+    - cron: '*/1 * * * *'
   workflow_dispatch:
   push:
     branches:
