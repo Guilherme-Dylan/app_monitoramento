@@ -1,4 +1,4 @@
-name: Auto Deploy to Manus Production
+name: Sync Codex Changes to Manus
 
 on:
   push:
@@ -6,28 +6,39 @@ on:
       - main
   workflow_dispatch:
 
+concurrency:
+  group: manus-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
 jobs:
-  deploy:
+  validate-and-sync:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.4.1
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 9
+          node-version: "24"
+          cache: pnpm
 
       - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
+        run: pnpm install --frozen-lockfile
+
+      - name: Type-check
+        run: pnpm run check
 
       - name: Run tests
         run: pnpm test
@@ -35,68 +46,103 @@ jobs:
       - name: Build project
         run: pnpm build
 
-      - name: Get commit info
+      - name: Collect commit metadata
         id: commit
+        shell: bash
         run: |
-          echo "author=$(git log -1 --pretty=format:'%an')" >> $GITHUB_OUTPUT
-          echo "message=$(git log -1 --pretty=format:'%s')" >> $GITHUB_OUTPUT
-          echo "hash=$(git log -1 --pretty=format:'%h')" >> $GITHUB_OUTPUT
+          {
+            echo "author=$(git log -1 --pretty=format:'%an')"
+            echo "email=$(git log -1 --pretty=format:'%ae')"
+            echo "hash=$(git log -1 --pretty=format:'%H')"
+            echo "short_hash=$(git log -1 --pretty=format:'%h')"
+            echo "message=$(git log -1 --pretty=format:'%s')"
+          } >> "$GITHUB_OUTPUT"
 
-      - name: Deploy to Manus
-        if: success()
+      - name: Request Manus sync
         env:
+          MANUS_API_KEY: ${{ secrets.MANUS_API_KEY }}
           MANUS_API_TOKEN: ${{ secrets.MANUS_API_TOKEN }}
+          MANUS_PROJECT_ID: ${{ secrets.MANUS_PROJECT_ID }}
+          MANUS_SITE_URL: https://monitapp-kzszuqk2.manus.space
+          REPOSITORY_URL: https://github.com/${{ github.repository }}
+          COMMIT_AUTHOR: ${{ steps.commit.outputs.author }}
+          COMMIT_EMAIL: ${{ steps.commit.outputs.email }}
+          COMMIT_HASH: ${{ steps.commit.outputs.hash }}
+          COMMIT_SHORT_HASH: ${{ steps.commit.outputs.short_hash }}
+          COMMIT_MESSAGE: ${{ steps.commit.outputs.message }}
+        shell: bash
         run: |
-          echo "🚀 =========================================="
-          echo "🚀 INICIANDO DEPLOY AUTOMÁTICO NO MANUS"
-          echo "🚀 =========================================="
-          echo ""
-          echo "📊 INFORMAÇÕES DO COMMIT:"
-          echo "  👤 Autor: ${{ steps.commit.outputs.author }}"
-          echo "  🔗 Hash: ${{ steps.commit.outputs.hash }}"
-          echo "  💬 Mensagem: ${{ steps.commit.outputs.message }}"
-          echo "  ⏰ Timestamp: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-          echo ""
-          echo "🌐 PUBLICANDO EM PRODUÇÃO..."
-          echo "  URL: https://monitapp-kzszuqk2.manus.space"
-          echo ""
-          
-          # Fazer deploy usando curl
-          DEPLOY_RESPONSE=$(curl -s -X POST \
-            -H "Authorization: Bearer ${MANUS_API_TOKEN}" \
-            -H "Content-Type: application/json" \
-            -d "{
-              \"message\": \"Deploy automático: ${{ steps.commit.outputs.message }}\",
-              \"author\": \"${{ steps.commit.outputs.author }}\",
-              \"commit_hash\": \"${{ steps.commit.outputs.hash }}\"
-            }" \
-            "https://api.manus.im/v1/projects/monitoramento_app/publish" || echo "DEPLOY_FAILED" )
-          
-          if [[ "$DEPLOY_RESPONSE" == *"DEPLOY_FAILED"* ]] || [[ -z "$DEPLOY_RESPONSE" ]]; then
-            echo "⏳ Aguarde 1-2 minutos para as mudanças aparecerem no site"
-          else
-            echo "✅ Deploy iniciado com sucesso!"
-            echo "$DEPLOY_RESPONSE"
+          if [ -z "${MANUS_API_KEY}" ] && [ -n "${MANUS_API_TOKEN}" ]; then
+            MANUS_API_KEY="${MANUS_API_TOKEN}"
           fi
-          
-          echo ""
-          echo "✨ =========================================="
-          echo "✨ DEPLOY INICIADO COM SUCESSO!"
-          echo "✨ =========================================="
 
-      - name: Notify on failure
-        if: failure()
-        run: |
-          echo "❌ =========================================="
-          echo "❌ DEPLOY FALHOU"
-          echo "❌ =========================================="
-          echo ""
-          echo "📊 INFORMAÇÕES DO COMMIT:"
-          echo "  👤 Autor: ${{ steps.commit.outputs.author }}"
-          echo "  🔗 Hash: ${{ steps.commit.outputs.hash }}"
-          echo "  💬 Mensagem: ${{ steps.commit.outputs.message }}"
-          echo ""
-          echo "❌ ERRO DETECTADO"
-          echo "🔍 Verifique os logs acima para detalhes"
-          echo ""
-          exit 1
+          if [ -z "${MANUS_API_KEY}" ]; then
+            echo "::error::Missing repository secret MANUS_API_KEY or MANUS_API_TOKEN."
+            echo "Create it in GitHub: Settings > Secrets and variables > Actions > New repository secret."
+            exit 1
+          fi
+
+          PROMPT=$(cat <<EOF
+Sincronize e publique o app de monitoramento hospedado na Manus a partir do GitHub.
+
+Repositório: ${REPOSITORY_URL}
+Branch: main
+Commit: ${COMMIT_HASH}
+Autor: ${COMMIT_AUTHOR} <${COMMIT_EMAIL}>
+Mensagem: ${COMMIT_MESSAGE}
+Site atual: ${MANUS_SITE_URL}
+
+Instruções:
+1. Atualize o projeto Manus usando o código mais recente da branch main.
+2. Preserve as variáveis de ambiente, banco de dados e configurações existentes no Manus.
+3. Execute o fluxo de publicação/deploy do app no ambiente Manus já existente.
+4. Não crie um novo app se o app ${MANUS_SITE_URL} já existir; atualize o app atual.
+5. Ao terminar, confirme a URL publicada e relate qualquer erro encontrado.
+EOF
+)
+
+          jq -n \
+            --arg prompt "$PROMPT" \
+            --arg project_id "$MANUS_PROJECT_ID" \
+            --arg short_hash "$COMMIT_SHORT_HASH" \
+            '{
+              message: {
+                content: [
+                  {
+                    type: "text",
+                    text: $prompt
+                  }
+                ]
+              },
+              title: "Deploy app_monitoramento \($short_hash)",
+              locale: "pt-BR",
+              interactive_mode: false,
+              hide_in_task_list: false
+            }
+            + (if $project_id == "" then {} else {project_id: $project_id} end)' > manus-task.json
+
+          HTTP_STATUS=$(curl -sS -o manus-response.json -w "%{http_code}" \
+            -X POST "https://api.manus.ai/v2/task.create" \
+            -H "Content-Type: application/json" \
+            -H "x-manus-api-key: ${MANUS_API_KEY}" \
+            --data @manus-task.json)
+
+          cat manus-response.json
+          echo
+
+          if [ "${HTTP_STATUS}" -lt 200 ] || [ "${HTTP_STATUS}" -ge 300 ]; then
+            echo "::error::Manus API returned HTTP ${HTTP_STATUS}."
+            exit 1
+          fi
+
+          OK=$(jq -r '.ok // false' manus-response.json)
+          TASK_URL=$(jq -r '.task_url // empty' manus-response.json)
+
+          if [ "${OK}" != "true" ]; then
+            echo "::error::Manus API did not accept the sync task."
+            exit 1
+          fi
+
+          echo "Manus sync task created successfully."
+          echo "Task URL: ${TASK_URL}"
+          echo "Target site: ${MANUS_SITE_URL}"
