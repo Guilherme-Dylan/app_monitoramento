@@ -80,6 +80,12 @@ jobs:
             exit 1
           fi
 
+          if [ -z "${MANUS_PROJECT_ID}" ]; then
+            echo "::warning::MANUS_PROJECT_ID is not configured, so this workflow will not create a generic Manus task."
+            echo "Configure the native GitHub sync in the Manus app, or add MANUS_PROJECT_ID after identifying the target Manus project."
+            exit 0
+          fi
+
           PROMPT=$(printf '%s\n' \
             "Sincronize e publique o app de monitoramento hospedado na Manus a partir do GitHub." \
             "" \
