@@ -1,0 +1,49 @@
+name: Discover Manus Tasks
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  list-tasks:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: List recent Manus tasks
+        env:
+          MANUS_API_KEY: ${{ secrets.MANUS_API_KEY }}
+          MANUS_API_TOKEN: ${{ secrets.MANUS_API_TOKEN }}
+        shell: bash
+        run: |
+          if [ -z "${MANUS_API_KEY}" ] && [ -n "${MANUS_API_TOKEN}" ]; then
+            MANUS_API_KEY="${MANUS_API_TOKEN}"
+          fi
+
+          if [ -z "${MANUS_API_KEY}" ]; then
+            echo "::error::Missing repository secret MANUS_API_KEY or MANUS_API_TOKEN."
+            exit 1
+          fi
+
+          HTTP_STATUS=$(curl -sS -o manus-tasks.json -w "%{http_code}" \
+            -H "x-manus-api-key: ${MANUS_API_KEY}" \
+            "https://api.manus.ai/v2/task.list?limit=100&order=desc&scope=all")
+
+          if [ "${HTTP_STATUS}" -lt 200 ] || [ "${HTTP_STATUS}" -ge 300 ]; then
+            echo "::error::Manus API returned HTTP ${HTTP_STATUS}."
+            cat manus-tasks.json
+            exit 1
+          fi
+
+          jq -r '
+            (.data // [])[]
+            | [
+                "id=\(.id)",
+                "type=\(.task_type)",
+                "status=\(.status)",
+                "title=\(.title)",
+                "url=\(.task_url)"
+              ]
+            | join(" | ")
+          ' manus-tasks.json
