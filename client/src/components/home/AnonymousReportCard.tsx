@@ -27,7 +27,7 @@ export function AnonymousReportCard() {
         Registre uma ocorrência com <strong>total sigilo e segurança</strong>. Sua identidade permanece protegida durante todo o processo.
       </p>
 
-      <Button asChild className="btn-premium btn-premium-red w-full h-12 text-lg md:text-[1.35rem] mt-auto">
+      <Button asChild className="btn-premium btn-premium-black w-full h-12 text-lg md:text-[1.35rem] mt-auto">
         <Link href="/anonymous-report" className="inline-flex items-center justify-center gap-3">
           <Megaphone className="h-5 w-5" />
           Registrar denúncia

@@ -31,7 +31,7 @@ export function AppHeader({ isAuthenticated, userName, onLogout }: AppHeaderProp
             </Button>
           </div>
         ) : (
-          <Button asChild className="btn-premium btn-premium-blue h-11 px-6 text-base">
+          <Button asChild className="btn-premium btn-premium-black h-11 px-6 text-base">
             <Link href="/menu" className="inline-flex items-center gap-2">
               <LayoutGrid className="h-5 w-5" />
               Menu

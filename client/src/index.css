@@ -304,6 +304,15 @@
     background: linear-gradient(135deg, #d60915 0%, #af000d 100%);
   }
 
+  .btn-premium-black {
+    background: linear-gradient(135deg, #111827 0%, #000000 100%);
+    color: #fff;
+  }
+
+  .btn-premium-black:hover {
+    background: linear-gradient(135deg, #1f2937 0%, #111111 100%);
+  }
+
   .security-card {
     display: flex;
     align-items: center;

@@ -21,7 +21,7 @@ export function LoginAccessCard() {
         Ao fazer login, você poderá acompanhar solicitações, consultar registros e acessar funcionalidades exclusivas do sistema.
       </p>
 
-      <Button asChild className="btn-premium btn-premium-blue w-full h-12 text-lg md:text-[1.35rem] mt-auto">
+      <Button asChild className="btn-premium btn-premium-black w-full h-12 text-lg md:text-[1.35rem] mt-auto">
         <Link href="/login" className="inline-flex items-center justify-center gap-3">
           <LogIn className="h-5 w-5" />
           Entrar no sistema
