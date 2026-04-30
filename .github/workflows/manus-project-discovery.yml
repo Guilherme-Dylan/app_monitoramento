@@ -1,0 +1,39 @@
+name: Discover Manus Projects
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  list-projects:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: List Manus projects
+        env:
+          MANUS_API_KEY: ${{ secrets.MANUS_API_KEY }}
+          MANUS_API_TOKEN: ${{ secrets.MANUS_API_TOKEN }}
+        shell: bash
+        run: |
+          if [ -z "${MANUS_API_KEY}" ] && [ -n "${MANUS_API_TOKEN}" ]; then
+            MANUS_API_KEY="${MANUS_API_TOKEN}"
+          fi
+
+          if [ -z "${MANUS_API_KEY}" ]; then
+            echo "::error::Missing repository secret MANUS_API_KEY or MANUS_API_TOKEN."
+            exit 1
+          fi
+
+          HTTP_STATUS=$(curl -sS -o manus-projects.json -w "%{http_code}" \
+            -H "x-manus-api-key: ${MANUS_API_KEY}" \
+            "https://api.manus.ai/v2/project.list")
+
+          if [ "${HTTP_STATUS}" -lt 200 ] || [ "${HTTP_STATUS}" -ge 300 ]; then
+            echo "::error::Manus API returned HTTP ${HTTP_STATUS}."
+            cat manus-projects.json
+            exit 1
+          fi
+
+          jq -r '.data[] | "id=\(.id) name=\(.name)"' manus-projects.json
