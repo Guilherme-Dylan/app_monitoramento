@@ -103,14 +103,24 @@ jobs:
 
           jq -n \
             --arg prompt "$PROMPT" \
+            --arg task_id "$MANUS_TARGET_TASK_ID" \
             '{
-              message: $prompt
+              task_id: $task_id,
+              agent_profile: "manus-1.6-lite",
+              message: {
+                content: [
+                  {
+                    type: "text",
+                    text: $prompt
+                  }
+                ]
+              }
             }' > manus-message.json
 
           HTTP_STATUS=$(curl -sS -o manus-response.json -w "%{http_code}" \
-            -X POST "https://api.manus.im/v1/tasks/${MANUS_TARGET_TASK_ID}/messages" \
+            -X POST "https://api.manus.ai/v2/task.sendMessage" \
             -H "Content-Type: application/json" \
-            -H "API_KEY: ${MANUS_API_KEY}" \
+            -H "x-manus-api-key: ${MANUS_API_KEY}" \
             --data @manus-message.json)
 
           cat manus-response.json
@@ -121,7 +131,9 @@ jobs:
             exit 1
           fi
 
-          if jq -e '.error // empty' manus-response.json >/dev/null; then
+          OK=$(jq -r '.ok // false' manus-response.json)
+
+          if [ "${OK}" != "true" ]; then
             echo "::error::Manus API did not accept the sync message."
             exit 1
           fi
