@@ -57,6 +57,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       - name: Ask Manus to sync connected project
+        if: ${{ !startsWith(github.event.head_commit.message, 'ci:') }}
         env:
           MANUS_API_KEY: ${{ secrets.MANUS_API_KEY }}
           MANUS_API_TOKEN: ${{ secrets.MANUS_API_TOKEN }}
@@ -119,11 +120,21 @@ jobs:
               }
             }' > manus-message.json
 
-          HTTP_STATUS=$(curl -sS -o manus-response.json -w "%{http_code}" \
-            -X POST "https://api.manus.ai/v2/task.sendMessage" \
-            -H "Content-Type: application/json" \
-            -H "x-manus-api-key: ${MANUS_API_KEY}" \
-            --data @manus-message.json)
+          HTTP_STATUS=""
+          for attempt in 1 2 3; do
+            HTTP_STATUS=$(curl -sS -o manus-response.json -w "%{http_code}" \
+              -X POST "https://api.manus.ai/v2/task.sendMessage" \
+              -H "Content-Type: application/json" \
+              -H "x-manus-api-key: ${MANUS_API_KEY}" \
+              --data @manus-message.json)
+
+            if [ "${HTTP_STATUS}" != "429" ]; then
+              break
+            fi
+
+            echo "Manus API rate limited this request. Retry ${attempt}/3 after 60 seconds."
+            sleep 60
+          done
 
           cat manus-response.json
           echo
