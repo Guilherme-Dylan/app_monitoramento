@@ -82,24 +82,22 @@ jobs:
             exit 1
           fi
 
-          PROMPT=$(cat <<EOF
-Sincronize e publique o app de monitoramento hospedado na Manus a partir do GitHub.
-
-Repositório: ${REPOSITORY_URL}
-Branch: main
-Commit: ${COMMIT_HASH}
-Autor: ${COMMIT_AUTHOR} <${COMMIT_EMAIL}>
-Mensagem: ${COMMIT_MESSAGE}
-Site atual: ${MANUS_SITE_URL}
-
-Instruções:
-1. Atualize o projeto Manus usando o código mais recente da branch main.
-2. Preserve as variáveis de ambiente, banco de dados e configurações existentes no Manus.
-3. Execute o fluxo de publicação/deploy do app no ambiente Manus já existente.
-4. Não crie um novo app se o app ${MANUS_SITE_URL} já existir; atualize o app atual.
-5. Ao terminar, confirme a URL publicada e relate qualquer erro encontrado.
-EOF
-)
+          PROMPT=$(printf '%s\n' \
+            "Sincronize e publique o app de monitoramento hospedado na Manus a partir do GitHub." \
+            "" \
+            "Repositório: ${REPOSITORY_URL}" \
+            "Branch: main" \
+            "Commit: ${COMMIT_HASH}" \
+            "Autor: ${COMMIT_AUTHOR} <${COMMIT_EMAIL}>" \
+            "Mensagem: ${COMMIT_MESSAGE}" \
+            "Site atual: ${MANUS_SITE_URL}" \
+            "" \
+            "Instruções:" \
+            "1. Atualize o projeto Manus usando o código mais recente da branch main." \
+            "2. Preserve as variáveis de ambiente, banco de dados e configurações existentes no Manus." \
+            "3. Execute o fluxo de publicação/deploy do app no ambiente Manus já existente." \
+            "4. Não crie um novo app se o app ${MANUS_SITE_URL} já existir; atualize o app atual." \
+            "5. Ao terminar, confirme a URL publicada e relate qualquer erro encontrado.")
 
           jq -n \
             --arg prompt "$PROMPT" \
