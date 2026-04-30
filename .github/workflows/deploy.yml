@@ -56,11 +56,11 @@ jobs:
             echo "message=$(git log -1 --pretty=format:'%s')"
           } >> "$GITHUB_OUTPUT"
 
-      - name: Request Manus sync
+      - name: Ask Manus to sync connected project
         env:
           MANUS_API_KEY: ${{ secrets.MANUS_API_KEY }}
           MANUS_API_TOKEN: ${{ secrets.MANUS_API_TOKEN }}
-          MANUS_PROJECT_ID: ${{ secrets.MANUS_PROJECT_ID }}
+          MANUS_TARGET_TASK_ID: ${{ secrets.MANUS_TARGET_TASK_ID }}
           MANUS_SITE_URL: https://monitapp-kzszuqk2.manus.space
           REPOSITORY_URL: https://github.com/${{ github.repository }}
           COMMIT_AUTHOR: ${{ steps.commit.outputs.author }}
@@ -80,14 +80,12 @@ jobs:
             exit 1
           fi
 
-          if [ -z "${MANUS_PROJECT_ID}" ]; then
-            echo "::warning::MANUS_PROJECT_ID is not configured, so this workflow will not create a generic Manus task."
-            echo "Configure the native GitHub sync in the Manus app, or add MANUS_PROJECT_ID after identifying the target Manus project."
-            exit 0
+          if [ -z "${MANUS_TARGET_TASK_ID}" ]; then
+            MANUS_TARGET_TASK_ID="agent-default-main_task"
           fi
 
           PROMPT=$(printf '%s\n' \
-            "Sincronize e publique o app de monitoramento hospedado na Manus a partir do GitHub." \
+            "Sincronize agora o projeto Manus conectado ao GitHub e publique a versão atualizada." \
             "" \
             "Repositório: ${REPOSITORY_URL}" \
             "Branch: main" \
@@ -97,37 +95,23 @@ jobs:
             "Site atual: ${MANUS_SITE_URL}" \
             "" \
             "Instruções:" \
-            "1. Atualize o projeto Manus usando o código mais recente da branch main." \
-            "2. Preserve as variáveis de ambiente, banco de dados e configurações existentes no Manus." \
-            "3. Execute o fluxo de publicação/deploy do app no ambiente Manus já existente." \
-            "4. Não crie um novo app se o app ${MANUS_SITE_URL} já existir; atualize o app atual." \
-            "5. Ao terminar, confirme a URL publicada e relate qualquer erro encontrado.")
+            "1. Use a integração GitHub já conectada no Manus para atualizar o projeto pela branch main." \
+            "2. Aplique as mudanças no app Manus existente, sem criar um novo app." \
+            "3. Preserve variáveis de ambiente, banco de dados, domínios e configurações existentes." \
+            "4. Publique o app atualizado em ${MANUS_SITE_URL}." \
+            "5. Ao terminar, confirme se a publicação foi feita ou relate o erro encontrado.")
 
           jq -n \
             --arg prompt "$PROMPT" \
-            --arg project_id "$MANUS_PROJECT_ID" \
-            --arg short_hash "$COMMIT_SHORT_HASH" \
             '{
-              message: {
-                content: [
-                  {
-                    type: "text",
-                    text: $prompt
-                  }
-                ]
-              },
-              title: "Deploy app_monitoramento \($short_hash)",
-              locale: "pt-BR",
-              interactive_mode: false,
-              hide_in_task_list: false
-            }
-            + (if $project_id == "" then {} else {project_id: $project_id} end)' > manus-task.json
+              message: $prompt
+            }' > manus-message.json
 
           HTTP_STATUS=$(curl -sS -o manus-response.json -w "%{http_code}" \
-            -X POST "https://api.manus.ai/v2/task.create" \
+            -X POST "https://api.manus.im/v1/tasks/${MANUS_TARGET_TASK_ID}/messages" \
             -H "Content-Type: application/json" \
-            -H "x-manus-api-key: ${MANUS_API_KEY}" \
-            --data @manus-task.json)
+            -H "API_KEY: ${MANUS_API_KEY}" \
+            --data @manus-message.json)
 
           cat manus-response.json
           echo
@@ -137,14 +121,11 @@ jobs:
             exit 1
           fi
 
-          OK=$(jq -r '.ok // false' manus-response.json)
-          TASK_URL=$(jq -r '.task_url // empty' manus-response.json)
-
-          if [ "${OK}" != "true" ]; then
-            echo "::error::Manus API did not accept the sync task."
+          if jq -e '.error // empty' manus-response.json >/dev/null; then
+            echo "::error::Manus API did not accept the sync message."
             exit 1
           fi
 
-          echo "Manus sync task created successfully."
-          echo "Task URL: ${TASK_URL}"
+          echo "Manus sync message sent successfully."
+          echo "Task ID: ${MANUS_TARGET_TASK_ID}"
           echo "Target site: ${MANUS_SITE_URL}"
