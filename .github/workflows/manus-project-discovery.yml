@@ -26,14 +26,34 @@ jobs:
             exit 1
           fi
 
-          HTTP_STATUS=$(curl -sS -o manus-projects.json -w "%{http_code}" \
+          HTTP_STATUS=$(curl -sS -o manus-projects-v2.json -w "%{http_code}" \
             -H "x-manus-api-key: ${MANUS_API_KEY}" \
             "https://api.manus.ai/v2/project.list")
 
           if [ "${HTTP_STATUS}" -lt 200 ] || [ "${HTTP_STATUS}" -ge 300 ]; then
             echo "::error::Manus API returned HTTP ${HTTP_STATUS}."
-            cat manus-projects.json
+            cat manus-projects-v2.json
             exit 1
           fi
 
-          jq -r '.data[] | "id=\(.id) name=\(.name)"' manus-projects.json
+          echo "v2 response:"
+          cat manus-projects-v2.json
+          echo
+          echo "v2 projects:"
+          jq -r '(.data // [])[] | "id=\(.id) name=\(.name)"' manus-projects-v2.json
+
+          HTTP_STATUS_V1=$(curl -sS -o manus-projects-v1.json -w "%{http_code}" \
+            -H "API_KEY: ${MANUS_API_KEY}" \
+            "https://api.manus.ai/v1/projects?limit=100")
+
+          if [ "${HTTP_STATUS_V1}" -lt 200 ] || [ "${HTTP_STATUS_V1}" -ge 300 ]; then
+            echo "v1 returned HTTP ${HTTP_STATUS_V1}:"
+            cat manus-projects-v1.json
+            exit 0
+          fi
+
+          echo "v1 response:"
+          cat manus-projects-v1.json
+          echo
+          echo "v1 projects:"
+          jq -r '(.data // [])[] | "id=\(.id) name=\(.name)"' manus-projects-v1.json
