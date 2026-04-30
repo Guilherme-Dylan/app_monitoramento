@@ -81,7 +81,9 @@ jobs:
           fi
 
           if [ -z "${MANUS_TARGET_TASK_ID}" ]; then
-            MANUS_TARGET_TASK_ID="agent-default-main_task"
+            echo "::warning::MANUS_TARGET_TASK_ID is not configured; validation passed, but Manus sync was skipped."
+            echo "Set MANUS_TARGET_TASK_ID to the Manus task id that owns the connected app."
+            exit 0
           fi
 
           PROMPT=$(printf '%s\n' \
