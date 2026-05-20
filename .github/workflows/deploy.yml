@@ -57,7 +57,6 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       - name: Ask Manus to sync connected project
-        if: ${{ !startsWith(github.event.head_commit.message, 'ci:') }}
         env:
           MANUS_API_KEY: ${{ secrets.MANUS_API_KEY }}
           MANUS_API_TOKEN: ${{ secrets.MANUS_API_TOKEN }}
@@ -79,6 +78,11 @@ jobs:
             echo "::error::Missing repository secret MANUS_API_KEY or MANUS_API_TOKEN."
             echo "Create it in GitHub: Settings > Secrets and variables > Actions > New repository secret."
             exit 1
+          fi
+
+          if [[ "${COMMIT_MESSAGE}" == ci:* ]]; then
+            echo "Skipping Manus sync for CI-only commit: ${COMMIT_MESSAGE}"
+            exit 0
           fi
 
           if [ -z "${MANUS_TARGET_TASK_ID}" ]; then
@@ -138,6 +142,11 @@ jobs:
 
           cat manus-response.json
           echo
+
+          if [ "${HTTP_STATUS}" = "429" ] && jq -e '.error.code == "resource_exhausted"' manus-response.json >/dev/null; then
+            echo "::warning::Manus API credit limit exceeded. Validation passed, but automatic Manus sync was skipped."
+            exit 0
+          fi
 
           if [ "${HTTP_STATUS}" -lt 200 ] || [ "${HTTP_STATUS}" -ge 300 ]; then
             echo "::error::Manus API returned HTTP ${HTTP_STATUS}."
