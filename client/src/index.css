@@ -314,12 +314,12 @@
   }
 
   .btn-premium-sync-test {
-    background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+    background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%);
     color: #fff;
   }
 
   .btn-premium-sync-test:hover {
-    background: linear-gradient(135deg, #22c55e 0%, #166534 100%);
+    background: linear-gradient(135deg, #8b5cf6 0%, #4c1d95 100%);
   }
 
   .security-card {
