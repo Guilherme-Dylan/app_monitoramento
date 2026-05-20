@@ -313,6 +313,15 @@
     background: linear-gradient(135deg, #1f2937 0%, #111111 100%);
   }
 
+  .btn-premium-sync-test {
+    background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+    color: #fff;
+  }
+
+  .btn-premium-sync-test:hover {
+    background: linear-gradient(135deg, #22c55e 0%, #166534 100%);
+  }
+
   .security-card {
     display: flex;
     align-items: center;
